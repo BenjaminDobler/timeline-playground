@@ -48,6 +48,15 @@
                                     [style.transform]="'translateX(' + keyframe.time * timeline.pixelsPerMilliseconds + 'px)'"
                                 ></div>
                             }
+
+                            @for (tween of track.tweens; track $index) {
+                                <div
+                                    class="tween"
+                                    (contextmenu)="onTweenContextMenu($event, tween)"
+                                    [style.transform]="'translateX(' + tween.start.time * timeline.pixelsPerMilliseconds + 'px)'"
+                                    [style.width]="(tween.end.time - tween.start.time) * timeline.pixelsPerMilliseconds + 'px'"
+                                ></div>
+                            }
                         </div>
                     }
                 }
@@ -56,3 +65,19 @@
         </div>
     </div>
 }
+
+<p-dialog header="Select easing" [modal]="true" [(visible)]="eadingDialogVisible" [style]="{ width: '25rem' }">
+    <span class="p-text-secondary block mb-5">Update your information.</span>
+
+    <div class="flex align-items-center gap-3 mb-5">
+        @if (selectedCMTween?.start) {
+            <p-dropdown appendTo="body" [options]="easings" [(ngModel)]="$any(selectedCMTween).start.easing" placeholder="Select easing" />
+        }
+    </div>
+    <div class="flex justify-content-end gap-2">
+        <p-button label="Cancel" severity="secondary" (onClick)="eadingDialogVisible = false" />
+        <p-button label="Save" (onClick)="timelineService.updated();eadingDialogVisible = false" />
+    </div>
+</p-dialog>
+
+<p-contextMenu #cm [model]="items" appendTo="body" />

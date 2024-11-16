@@ -15,9 +15,16 @@ export interface Group {
 export interface Track {
   name: string;
   keyframes: Keyframe[];
+  tweens: Tween[];
 }
 
 export interface Keyframe {
   time: number;
   value: number;
+  easing?: string;
+}
+
+export interface Tween {
+  start: Keyframe;
+  end: Keyframe;
 }

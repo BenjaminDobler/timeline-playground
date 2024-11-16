@@ -66,6 +66,8 @@ export class CoordinationService {
 
     gsapTimeline: gsap.core.Timeline | null = null;
 
+    tweens: any[] = [];
+
     selectedProperties: any = {
         x: 0,
         y: 0,
@@ -88,10 +90,11 @@ export class CoordinationService {
     constructor() {
         this.timelineService.updated$.subscribe((timeline) => {
             this.tl.clear();
-            console.log('updated!!!!!');
+            this.tweens = [];
 
             timeline.groups.forEach((group) => {
                 group.tracks.forEach((track) => {
+                    track.tweens = [];
                     track.keyframes.forEach((keyframe, index) => {
                         const nextKeyframe = track.keyframes[index + 1];
                         if (nextKeyframe) {
@@ -100,16 +103,23 @@ export class CoordinationService {
                             const fromVars = {
                                 [track.name]: keyframe.value,
                             };
-                            const toVars = {
+                            const toVars: any = {
                                 [track.name]: nextKeyframe.value,
                                 duration: (nextKeyframe.time - keyframe.time) / 1000,
                             };
 
-                            this.tl.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
-                            console.log('FROM TO ', keyframe.time / 1000, toVars.duration);
+                            if (!keyframe.easing || keyframe.easing === 'default') {
+                            } else {
+                                console.log('set keyframe easing ', keyframe.easing);
+                                toVars.ease = keyframe.easing;
+                            }
 
-                            // tl.to(group.target, prop, keyframe.time / 1000);
-                            console.log(prop, keyframe.time / 1000, prop.duration);
+                            track.tweens.push({
+                                start: keyframe,
+                                end: nextKeyframe,
+                            });
+
+                            this.tl.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
                         } else {
                             const props: any = {
                                 [track.name]: keyframe.value,
@@ -119,8 +129,6 @@ export class CoordinationService {
                     });
                 });
             });
-
-            console.log('play ', this.tl);
 
             this.tl.pause();
             this.gsapTimeline = this.tl;
@@ -176,6 +184,7 @@ export class CoordinationService {
                     // { time: 34000, value: 0 },
                 ],
                 name: 'x',
+                tweens: [],
             },
             {
                 keyframes: [
@@ -183,6 +192,7 @@ export class CoordinationService {
                     // { time: 22000, value: 200 },
                 ],
                 name: 'y',
+                tweens: [],
             },
         ];
         this.timelineService.addGroup(newGroup as Group);
@@ -198,6 +208,7 @@ export class CoordinationService {
                 track = {
                     name: prop,
                     keyframes: [],
+                    tweens: [],
                 };
                 this.selectedGroup.tracks.push(track);
             }
