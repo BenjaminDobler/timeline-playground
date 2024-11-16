@@ -31,6 +31,7 @@
                 [position]="timeline.position"
                 [pixelsPerMilliseconds]="timeline.pixelsPerMilliseconds"
                 [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'"
+                (onPosition)="timelineService.updatePosition($event)"
             ></timeline-ruler>
 
             @for (group of timeline.groups; track group) {

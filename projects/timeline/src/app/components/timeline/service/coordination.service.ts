@@ -187,7 +187,7 @@ export class CoordinationService {
         ];
         this.timelineService.addGroup(newGroup as Group);
         this.timelineService.updated();
-        this.selectedGroup = newGroup as Group;
+        this.setSelectedGroup(newGroup as Group);
     }
 
     propertyChanged(prop: string, value: number, updateTimeline = true) {

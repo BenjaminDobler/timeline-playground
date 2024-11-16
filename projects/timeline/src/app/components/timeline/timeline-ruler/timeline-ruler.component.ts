@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, inject, output } from '@angular/core';
 import { DragableDirective } from '../../../directives/dragable.directive';
 
 @Component({
@@ -13,6 +13,8 @@ export class TimelineRulerComponent {
     unitPatterPath = '';
     patternWidth = 0;
     patternHeight = 30;
+
+    onPosition = output<number>();
 
     private el: ElementRef = inject(ElementRef);
 
@@ -96,6 +98,14 @@ export class TimelineRulerComponent {
                 this.unitPatterPath += `M ${unitSpace * i} ${this.patternHeight} v -${this.patternHeight / 4}`;
             }
         }
+    }
+
+    onRuler(event: any) {
+        console.log('on ruler ', event.clientX);
+        const rect = this.el.nativeElement.getBoundingClientRect();
+        const p = event.clientX - rect.left;
+        console.log(p / this.pixelsPerMilliseconds);
+        this.onPosition.emit(p / this.pixelsPerMilliseconds);
     }
 
     onDragging(e: any) {
