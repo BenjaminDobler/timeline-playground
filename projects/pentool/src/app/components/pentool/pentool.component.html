@@ -1,6 +1,12 @@
 <svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
     @for (path of paths; track path) {
-        <path (mousedown)="onPath($event)" [attr.d]="path.d" [attr.stroke-width]="path.strokeWidth" [attr.stroke]="path.color" fill="transparent" />
+        <path
+            (mousedown)="onPath($event)"
+            [attr.d]="path.d"
+            [attr.stroke-width]="path.strokeWidth"
+            [attr.stroke]="path.color"
+            fill="transparent"
+        />
     }
 
     <!--edtitor path -->
@@ -43,11 +49,19 @@
     </div>
 }
 
-<div style="position: absolute; left: 0; top: 0">
-    <button (click)="mode = 'pen'">Pen</button>
-    <button (click)="mode = 'select'">Select</button>
-</div>
+<div style="position: absolute; left: 800px; top: 0">
+    <div>
+        <button (click)="mode = 'pen'">Pen</button>
+        <button (click)="mode = 'select'">Select</button>
+    </div>
+    @for (path of paths; track $index) {
+        <div>
+            <span (click)="selectPath(path)">{{ path.name }}</span>
+            <input [(ngModel)]="path.color" />
+        </div>
+    }
 
-@if (selectedPath) {
-    <div style="position: absolute; top: 0">{{ selectedPath.d }}</div>
-}
+    @if (selectedPath) {
+        <div>{{ selectedPath.d }}</div>
+    }
+</div>
