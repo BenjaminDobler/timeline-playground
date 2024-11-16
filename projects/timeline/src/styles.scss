@@ -4,3 +4,9 @@
 body {
     margin: 0;
 }
+
+*, ::after, ::before {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}

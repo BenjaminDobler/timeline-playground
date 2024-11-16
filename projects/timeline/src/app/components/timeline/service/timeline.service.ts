@@ -14,7 +14,7 @@ export class TimelineService {
     constructor() {
         this.timeline = {
             groups: [],
-            pixelsPerMilliseconds: 0.01,
+            pixelsPerMilliseconds: 0.1,
             duration: 3000 * 1000,
             position: 0,
         };

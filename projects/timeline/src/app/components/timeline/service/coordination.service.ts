@@ -72,23 +72,24 @@ export class CoordinationService {
         width: 0,
         height: 0,
         rotation: 0,
+        background: '#ff0000',
     };
 
     tl: gsap.core.Timeline = gsap.timeline({
         repeat: 0,
         repeatDelay: 0,
         onUpdate: () => {
-            console.log('on Update');
+            // in seconds
+            console.log('on Update ', this.tl.time());
+            this.timelineService.updatePosition(this.tl.time() * 1000);
         },
     });
 
     constructor() {
-
-
         this.timelineService.updated$.subscribe((timeline) => {
             this.tl.clear();
             console.log('updated!!!!!');
-            
+
             timeline.groups.forEach((group) => {
                 group.tracks.forEach((track) => {
                     track.keyframes.forEach((keyframe, index) => {
@@ -106,7 +107,6 @@ export class CoordinationService {
 
                             this.tl.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
                             console.log('FROM TO ', keyframe.time / 1000, toVars.duration);
-                            
 
                             // tl.to(group.target, prop, keyframe.time / 1000);
                             console.log(prop, keyframe.time / 1000, prop.duration);
@@ -235,7 +235,6 @@ export class CoordinationService {
         this.selectedGroup = group;
         this.syncGroupAndHighlight();
         // this.updateTimeline();
-
     }
 
     syncGroupAndHighlight() {

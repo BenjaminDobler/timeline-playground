@@ -17,7 +17,7 @@
 </div>
 
 <div class="property-group">
-    <label>rotation</label
+    <label>Rotation</label
     ><input
         (ngModelChange)="coordinator.propertyChanged('rotation', $event)"
         type="text"
@@ -26,10 +26,19 @@
 </div>
 
 <div class="property-group">
-    <label>Border Radiua</label
+    <label>Border Radius</label
     ><input
         (ngModelChange)="coordinator.propertyChanged('borderRadius', $event)"
         type="text"
         [(ngModel)]="coordinator.selectedProperties.borderRadius"
+    />
+</div>
+
+<div class="property-group">
+    <label>Background</label
+    ><input
+        (ngModelChange)="coordinator.propertyChanged('background', $event)"
+        type="text"
+        [(ngModel)]="coordinator.selectedProperties.background"
     />
 </div>
