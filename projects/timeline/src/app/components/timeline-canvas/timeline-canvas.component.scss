@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  background: #dedede;
+  position: relative;
+}
+
+
+.highlight {
+  z-index: 3000;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border: solid 1px blue;
+}

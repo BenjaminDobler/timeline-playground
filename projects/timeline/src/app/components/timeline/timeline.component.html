@@ -1,0 +1,57 @@
+@if (timeline) {
+    <div class="timeline-container">
+        <div class="label-group">
+            <div class="label-ruler"></div>
+
+            @for (group of timeline.groups; track group) {
+                <div class="group label" (click)="group.expanded = !group.expanded">
+                    {{ group?.name }}
+                </div>
+
+                @if (group.expanded) {
+                    @for (track of group.tracks; track track) {
+                        <div class="track label">
+                            {{ track?.name }}
+                        </div>
+                    }
+                }
+            }
+
+            <div class="track-footer"></div>
+        </div>
+
+        <div class="track-group">
+            <div
+                class="scroll-indicator"
+                [style.transform]="'translateX(' + timeline.pixelsPerMilliseconds * timeline.position + 'px)'"
+            ></div>
+
+            <timeline-ruler
+                (dragging)="onScrubDragged($event)"
+                [position]="timeline.position"
+                [pixelsPerMilliseconds]="timeline.pixelsPerMilliseconds"
+                [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'"
+            ></timeline-ruler>
+
+            @for (group of timeline.groups; track group) {
+                <div class="group" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'"></div>
+
+                @if (group.expanded) {
+                    @for (track of group.tracks; track track) {
+                        <div class="track" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'">
+                            @for (keyframe of track.keyframes; track keyframe) {
+                                <div
+                                    class="keyframe"
+                                    draggable
+                                    (dragging)="onKeyframeDragged($event, keyframe)"
+                                    [style.transform]="'translateX(' + keyframe.time * timeline.pixelsPerMilliseconds + 'px)'"
+                                ></div>
+                            }
+                        </div>
+                    }
+                }
+            }
+            <div class="track-footer"></div>
+        </div>
+    </div>
+}

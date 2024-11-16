@@ -1,0 +1,35 @@
+<div class="property-group">
+    <label>x</label
+    ><input (ngModelChange)="coordinator.propertyChanged('x', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.x" />
+    <label>y</label
+    ><input (ngModelChange)="coordinator.propertyChanged('y', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.y" />
+</div>
+
+<div class="property-group">
+    <label>width</label
+    ><input (ngModelChange)="coordinator.propertyChanged('width', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.width" />
+    <label>height</label
+    ><input
+        (ngModelChange)="coordinator.propertyChanged('height', $event)"
+        type="text"
+        [(ngModel)]="coordinator.selectedProperties.height"
+    />
+</div>
+
+<div class="property-group">
+    <label>rotation</label
+    ><input
+        (ngModelChange)="coordinator.propertyChanged('rotation', $event)"
+        type="text"
+        [(ngModel)]="coordinator.selectedProperties.rotation"
+    />
+</div>
+
+<div class="property-group">
+    <label>Border Radiua</label
+    ><input
+        (ngModelChange)="coordinator.propertyChanged('borderRadius', $event)"
+        type="text"
+        [(ngModel)]="coordinator.selectedProperties.borderRadius"
+    />
+</div>

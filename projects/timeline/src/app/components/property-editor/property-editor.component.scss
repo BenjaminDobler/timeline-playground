@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+
+
+input {
+  width: 60px;
+}
+
+label {
+  min-width: 60px;
+  text-align: right;
+}
+
+.property-group {
+  display: flex;
+  margin-bottom: 5px;
+}

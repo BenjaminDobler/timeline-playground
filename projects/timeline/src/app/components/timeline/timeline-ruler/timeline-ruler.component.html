@@ -1,0 +1,32 @@
+<svg width="100%" height="100%" x="0" y="0">
+    <defs>
+        <pattern
+            [attr.height]="patternHeight"
+            [attr.width]="patternWidth"
+            stroke="#FFF"
+            stroke-width="1"
+            x="0"
+            id="pattern-timeline-ruler"
+            patternUnits="userSpaceOnUse"
+            y="0"
+        >
+            <path [attr.d]="unitPatterPath"></path>
+        </pattern>
+    </defs>
+
+    <rect width="100%" [attr.height]="patternHeight" fill="url(#pattern-timeline-ruler)" pointer-events="all" x="0" y="0"></rect>
+    <text y="2" fill="#fff" id="timeline-tick-text">
+        @for (time of times; track time) {
+            <tspan [attr.x]="$index * patternWidth + 2">{{ time }}</tspan>
+        }
+    </text>
+</svg>
+
+<div
+    draggable
+    (dragging)="onDragging($event)"
+    class="scrubber"
+    [style.transform]="'translateX(' + pixelsPerMilliseconds * position + 'px)'"
+>
+    <div class="knob"></div>
+</div>

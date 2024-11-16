@@ -1,0 +1,53 @@
+<svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    @for (path of paths; track path) {
+        <path (mousedown)="onPath($event)" [attr.d]="path.d" [attr.stroke-width]="path.strokeWidth" [attr.stroke]="path.color" fill="transparent" />
+    }
+
+    <!--edtitor path -->
+    @if (mode === "pen") {
+        <path [attr.d]="controlLines" opacity="0.5" stroke="blue" fill="transparent" />
+    }
+</svg>
+
+<!-- <svg style="position: absolute; top: 0; left: 0; pointer-events: none" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+</svg> -->
+
+@if (mode === "pen" && selectedPath) {
+    <div>
+        @for (part of selectedPath.parts; track part) {
+            <div (mousedown)="onPart(part, $event)" [style.left]="part.x + 'px'" [style.top]="part.y + 'px'" class="dot">
+                <div class="dot-inner"></div>
+            </div>
+        }
+
+        @for (part of selectedPath.parts; track part) {
+            <div
+                (mousedown)="onHandle1(part, $event)"
+                class="dot"
+                *ngIf="part.handle"
+                [style.left]="part.handle.x + 'px'"
+                [style.top]="part.handle.y + 'px'"
+            >
+                <div class="dot-inner-handle"></div>
+            </div>
+            <div
+                (mousedown)="onHandle2(part, $event)"
+                class="dot"
+                *ngIf="part.handle2"
+                [style.left]="part.handle2.x + 'px'"
+                [style.top]="part.handle2.y + 'px'"
+            >
+                <div class="dot-inner-handle"></div>
+            </div>
+        }
+    </div>
+}
+
+<div style="position: absolute; left: 0; top: 0">
+    <button (click)="mode = 'pen'">Pen</button>
+    <button (click)="mode = 'select'">Select</button>
+</div>
+
+@if (selectedPath) {
+    <div style="position: absolute; top: 0">{{ selectedPath.d }}</div>
+}
