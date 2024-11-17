@@ -1,7 +1,7 @@
 <svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
     @for (path of paths; track path) {
         <path
-            (mousedown)="onPath($event)"
+            (mousedown)="onPath(path)"
             [attr.d]="path.d"
             [attr.stroke-width]="path.strokeWidth"
             [attr.stroke]="path.color"
@@ -10,7 +10,7 @@
     }
 
     <!--edtitor path -->
-    @if (mode === "pen") {
+    @if (mode === "pen" || mode === "edit") {
         <path [attr.d]="controlLines" opacity="0.5" stroke="blue" fill="transparent" />
     }
 </svg>
@@ -18,7 +18,7 @@
 <!-- <svg style="position: absolute; top: 0; left: 0; pointer-events: none" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
 </svg> -->
 
-@if (mode === "pen" && selectedPath) {
+@if ((mode === "pen" || mode === "edit") && selectedPath) {
     <div>
         @for (part of selectedPath.parts; track part) {
             <div (mousedown)="onPart(part, $event)" [style.left]="part.x + 'px'" [style.top]="part.y + 'px'" class="dot">

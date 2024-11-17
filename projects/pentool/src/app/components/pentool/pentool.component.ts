@@ -19,7 +19,7 @@ export interface Path {
     styleUrl: './pentool.component.scss',
 })
 export class PentoolComponent {
-    mode: 'pen' | 'select' = 'pen';
+    mode: 'pen' | 'select' | 'edit' = 'pen';
     controlLines = '';
     lastPart: any;
 
@@ -163,38 +163,42 @@ export class PentoolComponent {
         event.stopPropagation();
         console.log('on part');
 
-        this.selectedPath?.parts.push({
-            x: event.clientX,
-            y: event.clientY,
-            type: 'close',
-        });
-        this.updatePath();
+        if (this.mode === 'pen') {
+            this.selectedPath?.parts.push({
+                x: event.clientX,
+                y: event.clientY,
+                type: 'close',
+            });
+            this.updatePath();
 
-        this.selectedPath = null;
-        this.updatePath();
+            this.selectedPath = null;
+            this.updatePath();
+        }
 
         // console.log('on part');
         // this.path = this.path +=" Z";
         // this.mode = 'select';
 
-        // let last = { x: event.clientX, y: event.clientY };
-        // fromEvent(window, 'mousemove')
-        //     .pipe(takeUntil(fromEvent(window, 'mouseup')))
-        //     .subscribe((event: any) => {
-        //         part.x = event.clientX;
-        //         part.y = event.clientY;
-        //         if (part.handle) {
-        //             part.handle.x += event.clientX - last.x;
-        //             part.handle.y += event.clientY - last.y;
-        //         }
+        if (this.mode === 'edit') {
+            let last = { x: event.clientX, y: event.clientY };
+            fromEvent(window, 'mousemove')
+                .pipe(takeUntil(fromEvent(window, 'mouseup')))
+                .subscribe((event: any) => {
+                    part.x = event.clientX;
+                    part.y = event.clientY;
+                    if (part.handle) {
+                        part.handle.x += event.clientX - last.x;
+                        part.handle.y += event.clientY - last.y;
+                    }
 
-        //         if (part.handle2) {
-        //             part.handle2.x += event.clientX - last.x;
-        //             part.handle2.y += event.clientY - last.y;
-        //         }
-        //         this.updatePath();
-        //         last = { x: event.clientX, y: event.clientY };
-        //     });
+                    if (part.handle2) {
+                        part.handle2.x += event.clientX - last.x;
+                        part.handle2.y += event.clientY - last.y;
+                    }
+                    this.updatePath();
+                    last = { x: event.clientX, y: event.clientY };
+                });
+        }
     }
 
     onHandle2(part: any, event: MouseEvent) {
@@ -232,9 +236,14 @@ export class PentoolComponent {
             });
     }
 
-    onPath(mouseEvent: MouseEvent) {
+    onPath(path: Path) {
         console.log('on path');
         // mouseEvent.stopPropagation();
+        if (this.mode === 'select') {
+            this.selectedPath = path;
+            this.mode = 'edit';
+            this.updatePath();
+        }
     }
 
     selectPath(p: Path) {
