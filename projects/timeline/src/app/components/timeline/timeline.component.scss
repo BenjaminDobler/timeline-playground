@@ -11,6 +11,8 @@
     position: sticky;
     z-index: 16;
     top: 0;
+    border-bottom: solid 1px #424242
+
 }
 
 timeline-ruler {
@@ -22,6 +24,8 @@ timeline-ruler {
     height: 20px;
     background: #222;
     color: #fff;
+    border-bottom: solid 1px #424242;
+
 
     &.label {
       padding-left: 10px;
@@ -44,6 +48,9 @@ timeline-ruler {
     position: sticky;
     left: 0;
     z-index: 10;
+    background: #2c2c2c;
+    border-right: solid 1px #424242
+
 }
 
 .track-group {
@@ -55,12 +62,14 @@ timeline-ruler {
 .track {
     height: 20px;
     position: relative;
-    border-bottom: solid 1px #000;
+    border-bottom: solid 1px #424242;
+
     background: #1d1d1d;
 
     &.label {
       padding-left: 20px;
       line-height: 20px;
+      background: #1d1d1d;
     }
 
     .keyframe {
@@ -93,7 +102,7 @@ timeline-ruler {
     }
 
     &.label {
-        background: #242424;
+        // background: #242424;
         color: #8c8c8c;
     }
 }
