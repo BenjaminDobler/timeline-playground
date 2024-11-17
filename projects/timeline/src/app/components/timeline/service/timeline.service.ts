@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Group, Keyframe, Timeline } from '../model/timeline.model';
+import { Group, Keyframe, Timeline, Track } from '../model/timeline.model';
 import { Subject } from 'rxjs';
 import gsap from 'gsap';
 
@@ -61,7 +61,6 @@ export class TimelineService {
                 track.keyframes.forEach((keyframe, index) => {
                     const nextKeyframe = track.keyframes[index + 1];
                     if (nextKeyframe) {
-                        const prop: any = {};
 
                         const fromVars = {
                             [track.name]: keyframe.value,
@@ -93,9 +92,11 @@ export class TimelineService {
         });
 
         this.gsapTimeline.pause();
-        console.log('after calculate ', this.gsapTimeline.time());
-        console.log(this.timeline.position / 1000);
         this.gsapTimeline.seek(this.timeline.position / 1000);
-    
+    }
+
+    removeKeyframe(data: { keyframe: Keyframe; track: Track; group: Group }) {
+        data.track.keyframes = data.track.keyframes.filter((k) => k !== data.keyframe);
+        this.updated();
     }
 }

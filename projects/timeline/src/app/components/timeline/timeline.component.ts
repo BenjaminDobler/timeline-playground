@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, inject, viewChild } from '@angular/core';
 import { TimelineRulerComponent } from './timeline-ruler/timeline-ruler.component';
-import { Keyframe, Timeline, Tween } from './model/timeline.model';
+import { Group, Keyframe, Timeline, Track, Tween } from './model/timeline.model';
 import { TimelineService } from './service/timeline.service';
 import { DragableDirective } from '../../directives/dragable.directive';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
@@ -14,7 +14,16 @@ import { FormsModule } from '@angular/forms';
 @Component({
     selector: 'timeline',
     standalone: true,
-    imports: [CommonModule, TimelineRulerComponent, DragableDirective, ContextMenuModule, ButtonModule, DialogModule, DropdownModule, FormsModule],
+    imports: [
+        CommonModule,
+        TimelineRulerComponent,
+        DragableDirective,
+        ContextMenuModule,
+        ButtonModule,
+        DialogModule,
+        DropdownModule,
+        FormsModule,
+    ],
     templateUrl: './timeline.component.html',
     styleUrl: './timeline.component.scss',
 })
@@ -26,7 +35,9 @@ export class TimelineComponent {
     cm? = viewChild<ContextMenu>('cm');
     eadingDialogVisible = false;
 
-    items: MenuItem[] = [
+    items: MenuItem[] = [];
+
+    tweenContextItems: MenuItem[] = [
         {
             label: 'Easing',
             command: () => {
@@ -36,25 +47,36 @@ export class TimelineComponent {
         },
     ];
 
-    easings = [
-      'default',
-      'power1.out', 
-      'power1.in', 
-      'power1.inOut', 
-      'bounce.out',
-      'bounce.in',
-      'bounce.inOut'
+    keyframeContextItems: MenuItem[] = [
+        {
+            label: 'Delete',
+            command: () => {
+                if (this.selectedKeyframeContex) {
+                    this.timelineService.removeKeyframe(this.selectedKeyframeContex);
+                }
+            },
+        },
     ];
+
+    selectedKeyframeContex?: { track: Track; keyframe: Keyframe; group: Group };
+
+    easings = ['default', 'power1.out', 'power1.in', 'power1.inOut', 'bounce.out', 'bounce.in', 'bounce.inOut'];
 
     selectedCMTween?: Tween;
     onTweenContextMenu(event: any, tween: Tween) {
-        console.log('on tween contextmenu');
         this.selectedCMTween = tween;
+        this.items = this.tweenContextItems;
         if (this.cm !== undefined) {
-            console.log('show');
             this.cm()?.show(event);
-        } else {
-            console.log('not defined');
+        }
+    }
+
+    onKeyframeContextMenu(event: any, keyframe: Keyframe, track: Track, group: Group) {
+        this.selectedKeyframeContex = { track, keyframe, group };
+        this.items = this.keyframeContextItems;
+
+        if (this.cm !== undefined) {
+            this.cm()?.show(event);
         }
     }
 

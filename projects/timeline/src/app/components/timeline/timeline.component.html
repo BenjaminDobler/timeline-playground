@@ -70,6 +70,7 @@
                             @for (keyframe of track.keyframes; track keyframe) {
                                 <div
                                     class="keyframe"
+                                    (contextmenu)="onKeyframeContextMenu($event, keyframe, track, group)"
                                     draggable
                                     (dragging)="onKeyframeDragged($event, keyframe)"
                                     [style.transform]="'translateX(' + keyframe.time * timeline.pixelsPerMilliseconds + 'px)'"
