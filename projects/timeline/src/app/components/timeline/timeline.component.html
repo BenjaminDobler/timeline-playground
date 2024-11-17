@@ -1,7 +1,25 @@
 @if (timeline) {
     <div class="timeline-container">
         <div class="label-group">
-            <div class="label-ruler"></div>
+            <div class="label-ruler">
+                @if (timelineService.gsapTimeline.paused()) {
+                    <p-button
+                        size="small"
+                        icon="pi pi-play"
+                        (onClick)="timelineService.gsapTimeline.play()"
+                        [rounded]="true"
+                        [outlined]="true"
+                    />
+                } @else {
+                    <p-button
+                        size="small"
+                        icon="pi pi-pause"
+                        (onClick)="timelineService.gsapTimeline.pause()"
+                        [rounded]="true"
+                        [outlined]="true"
+                    />
+                }
+            </div>
 
             @for (group of timeline.groups; track group) {
                 <div class="group label" (click)="group.expanded = !group.expanded">
@@ -40,15 +58,6 @@
                 @if (group.expanded) {
                     @for (track of group.tracks; track track) {
                         <div class="track" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'">
-                            @for (keyframe of track.keyframes; track keyframe) {
-                                <div
-                                    class="keyframe"
-                                    draggable
-                                    (dragging)="onKeyframeDragged($event, keyframe)"
-                                    [style.transform]="'translateX(' + keyframe.time * timeline.pixelsPerMilliseconds + 'px)'"
-                                ></div>
-                            }
-
                             @for (tween of track.tweens; track $index) {
                                 <div
                                     class="tween"
@@ -56,6 +65,17 @@
                                     [style.transform]="'translateX(' + tween.start.time * timeline.pixelsPerMilliseconds + 'px)'"
                                     [style.width]="(tween.end.time - tween.start.time) * timeline.pixelsPerMilliseconds + 'px'"
                                 ></div>
+                            }
+
+                            @for (keyframe of track.keyframes; track keyframe) {
+                                <div
+                                    class="keyframe"
+                                    draggable
+                                    (dragging)="onKeyframeDragged($event, keyframe)"
+                                    [style.transform]="'translateX(' + keyframe.time * timeline.pixelsPerMilliseconds + 'px)'"
+                                >
+                                    <div class="diamond"></div>
+                                </div>
                             }
                         </div>
                     }
@@ -76,7 +96,7 @@
     </div>
     <div class="flex justify-content-end gap-2">
         <p-button label="Cancel" severity="secondary" (onClick)="eadingDialogVisible = false" />
-        <p-button label="Save" (onClick)="timelineService.updated();eadingDialogVisible = false" />
+        <p-button label="Save" (onClick)="timelineService.updated(); eadingDialogVisible = false" />
     </div>
 </p-dialog>
 

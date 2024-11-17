@@ -42,7 +42,6 @@ function drag(target: HTMLElement, parentElement: HTMLElement) {
             x = Math.max(0, x);
             y = Math.max(0, y);
             target.style.transform = `translate(${x}px, ${y}px)`;
-            console.log('dragging', x, y);
             dragging.next({ x, y });
         }
     });
@@ -66,8 +65,6 @@ export class CoordinationService {
 
     gsapTimeline: gsap.core.Timeline | null = null;
 
-    tweens: any[] = [];
-
     selectedProperties: any = {
         x: 0,
         y: 0,
@@ -77,66 +74,59 @@ export class CoordinationService {
         background: '#ff0000',
     };
 
-    tl: gsap.core.Timeline = gsap.timeline({
-        repeat: 0,
-        repeatDelay: 0,
-        onUpdate: () => {
-            // in seconds
-            console.log('on Update ', this.tl.time());
-            this.timelineService.updatePosition(this.tl.time() * 1000);
-        },
-    });
+    
 
     constructor() {
-        this.timelineService.updated$.subscribe((timeline) => {
-            this.tl.clear();
-            this.tweens = [];
+        // this.timelineService.updated$.subscribe((timeline) => {
+        //     this.tl.clear();
+        //     this.tweens = [];
 
-            timeline.groups.forEach((group) => {
-                group.tracks.forEach((track) => {
-                    track.tweens = [];
-                    track.keyframes.forEach((keyframe, index) => {
-                        const nextKeyframe = track.keyframes[index + 1];
-                        if (nextKeyframe) {
-                            const prop: any = {};
+        //     timeline.groups.forEach((group) => {
+        //         group.tracks.forEach((track) => {
+        //             track.tweens = [];
+        //             track.keyframes.forEach((keyframe, index) => {
+        //                 const nextKeyframe = track.keyframes[index + 1];
+        //                 if (nextKeyframe) {
+        //                     const prop: any = {};
 
-                            const fromVars = {
-                                [track.name]: keyframe.value,
-                            };
-                            const toVars: any = {
-                                [track.name]: nextKeyframe.value,
-                                duration: (nextKeyframe.time - keyframe.time) / 1000,
-                            };
+        //                     const fromVars = {
+        //                         [track.name]: keyframe.value,
+        //                     };
+        //                     const toVars: any = {
+        //                         [track.name]: nextKeyframe.value,
+        //                         duration: (nextKeyframe.time - keyframe.time) / 1000,
+        //                     };
 
-                            if (!keyframe.easing || keyframe.easing === 'default') {
-                            } else {
-                                console.log('set keyframe easing ', keyframe.easing);
-                                toVars.ease = keyframe.easing;
-                            }
+        //                     if (!keyframe.easing || keyframe.easing === 'default') {
+        //                     } else {
+        //                         console.log('set keyframe easing ', keyframe.easing);
+        //                         toVars.ease = keyframe.easing;
+        //                     }
 
-                            track.tweens.push({
-                                start: keyframe,
-                                end: nextKeyframe,
-                            });
+        //                     track.tweens.push({
+        //                         start: keyframe,
+        //                         end: nextKeyframe,
+        //                     });
 
-                            this.tl.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
-                        } else {
-                            const props: any = {
-                                [track.name]: keyframe.value,
-                            };
-                            this.tl.set(group.target, props, keyframe.time);
-                        }
-                    });
-                });
-            });
+        //                     this.tl.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
+        //                 } else {
+        //                     const props: any = {
+        //                         [track.name]: keyframe.value,
+        //                     };
+        //                     this.tl.set(group.target, props, keyframe.time);
+        //                 }
+        //             });
+        //         });
+        //     });
 
-            this.tl.pause();
-            this.gsapTimeline = this.tl;
+        //     this.tl.pause();
+        //     this.gsapTimeline = this.tl;
 
-            this.timelineService.positionUpdated$.subscribe((position) => {
-                this.gsapTimeline?.seek(position / 1000);
-                this.syncGroupAndHighlight();
-            });
+            
+        // });
+
+        this.timelineService.positionUpdated$.subscribe((position) => {
+            this.syncGroupAndHighlight();
         });
     }
 
@@ -150,7 +140,7 @@ export class CoordinationService {
         newDiv.style.backgroundColor = 'red';
 
         let newGroup: Partial<Group> = {
-            name: 'New Group',
+            name: 'Rectangle',
             expanded: true,
             target: newDiv,
         };
@@ -165,8 +155,6 @@ export class CoordinationService {
             this.setSelectedGroup(newGroup as Group);
         });
         dragging.subscribe((props) => {
-            console.log('dragging');
-
             this.propertyChanged('x', props.x, false);
             this.propertyChanged('y', props.y, false);
         });
@@ -201,7 +189,6 @@ export class CoordinationService {
     }
 
     propertyChanged(prop: string, value: number, updateTimeline = true) {
-        console.log('propertyChanged', prop, value);
         if (this.selectedGroup) {
             let track = this.selectedGroup.tracks.find((track) => track.name === prop);
             if (!track) {

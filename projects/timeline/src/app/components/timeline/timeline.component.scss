@@ -2,11 +2,12 @@
     display: block;
     width: 100%;
     overflow: hidden;
+    background: #2c2c2c;
+    border-top: solid 1px #424242
 }
 
 .label-ruler {
     height: 30px;
-    background: #2d313c;
     position: sticky;
     z-index: 16;
     top: 0;
@@ -21,6 +22,11 @@ timeline-ruler {
     height: 20px;
     background: #222;
     color: #fff;
+
+    &.label {
+      padding-left: 10px;
+      line-height: 20px;
+    }
 }
 
 .timeline-container {
@@ -52,23 +58,38 @@ timeline-ruler {
     border-bottom: solid 1px #000;
     background: #1d1d1d;
 
+    &.label {
+      padding-left: 20px;
+      line-height: 20px;
+    }
+
     .keyframe {
-        width: 5px;
-        height: 100%;
         position: absolute;
         left: 0;
-        top: 0;
-        background: #00ff00;
+        top: 50%;
+
+        .diamond {
+            width: 12px;
+            height: 12px;
+            background: #027AFF;
+
+            transform-origin: center center;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
     }
 
     .tween {
-        width: 5px;
-        height: 10px;
-        position: absolute;
-        left: 0;
-        top: 5px;
-        border-radius: 3px;
-        background: #4c4c4c;
+      height: 4px;
+      position: absolute;
+      left: 0;
+      top: 8px;
+      border-radius: 3px;
+      background: #08488f;
+      &:hover {
+        background: #0955ab;
+
+      }
+
     }
 
     &.label {

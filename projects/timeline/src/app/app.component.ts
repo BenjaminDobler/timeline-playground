@@ -8,11 +8,21 @@ import { TimelineService } from './components/timeline/service/timeline.service'
 import { TimelineCanvasComponent } from './components/timeline-canvas/timeline-canvas.component';
 import { CoordinationService } from './components/timeline/service/coordination.service';
 import { PropertyEditorComponent } from './components/property-editor/property-editor.component';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [RouterOutlet, TimelineRulerComponent, CommonModule, FormsModule, TimelineComponent, TimelineCanvasComponent, PropertyEditorComponent],
+    imports: [
+        RouterOutlet,
+        TimelineRulerComponent,
+        ButtonModule,
+        CommonModule,
+        FormsModule,
+        TimelineComponent,
+        TimelineCanvasComponent,
+        PropertyEditorComponent,
+    ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
 })

@@ -1,44 +1,70 @@
 <div class="property-group">
-    <label>x</label
-    ><input (ngModelChange)="coordinator.propertyChanged('x', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.x" />
-    <label>y</label
-    ><input (ngModelChange)="coordinator.propertyChanged('y', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.y" />
+    <div class="input-group">
+        <label>x</label
+        ><input (ngModelChange)="coordinator.propertyChanged('x', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.x" />
+    </div>
+    <div class="input-group">
+        <label>y</label
+        ><input (ngModelChange)="coordinator.propertyChanged('y', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.y" />
+    </div>
 </div>
 
 <div class="property-group">
-    <label>width</label
-    ><input (ngModelChange)="coordinator.propertyChanged('width', $event)" type="text" [(ngModel)]="coordinator.selectedProperties.width" />
-    <label>height</label
-    ><input
-        (ngModelChange)="coordinator.propertyChanged('height', $event)"
-        type="text"
-        [(ngModel)]="coordinator.selectedProperties.height"
-    />
+    <div class="input-group">
+        <label>W</label
+        ><input
+            (ngModelChange)="coordinator.propertyChanged('width', $event)"
+            type="text"
+            [(ngModel)]="coordinator.selectedProperties.width"
+        />
+    </div>
+    <div class="input-group">
+        <label>H</label
+        ><input
+            (ngModelChange)="coordinator.propertyChanged('height', $event)"
+            type="text"
+            [(ngModel)]="coordinator.selectedProperties.height"
+        />
+    </div>
 </div>
 
 <div class="property-group">
-    <label>Rotation</label
-    ><input
-        (ngModelChange)="coordinator.propertyChanged('rotation', $event)"
-        type="text"
-        [(ngModel)]="coordinator.selectedProperties.rotation"
-    />
+    <div class="input-group">
+        <label>R</label
+        ><input
+            (ngModelChange)="coordinator.propertyChanged('rotation', $event)"
+            type="text"
+            [(ngModel)]="coordinator.selectedProperties.rotation"
+        />
+    </div>
 </div>
 
 <div class="property-group">
-    <label>Border Radius</label
-    ><input
-        (ngModelChange)="coordinator.propertyChanged('borderRadius', $event)"
-        type="text"
-        [(ngModel)]="coordinator.selectedProperties.borderRadius"
-    />
+    <div class="input-group">
+        <label>R</label
+        ><input
+            (ngModelChange)="coordinator.propertyChanged('borderRadius', $event)"
+            type="text"
+            [(ngModel)]="coordinator.selectedProperties.borderRadius"
+        />
+    </div>
 </div>
 
 <div class="property-group">
-    <label>Background</label
-    ><input
-        (ngModelChange)="coordinator.propertyChanged('background', $event)"
-        type="text"
-        [(ngModel)]="coordinator.selectedProperties.background"
-    />
+    <div class="input-group">
+        <input
+            class="color-input"
+            type="color"
+            id="head"
+            name="head"
+            (ngModelChange)="coordinator.propertyChanged('background', $event)"
+            [(ngModel)]="coordinator.selectedProperties.background"
+        />
+
+        <input
+            (ngModelChange)="coordinator.propertyChanged('background', $event)"
+            type="text"
+            [(ngModel)]="coordinator.selectedProperties.background"
+        />
+    </div>
 </div>
