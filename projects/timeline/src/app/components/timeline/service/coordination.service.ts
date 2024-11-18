@@ -74,8 +74,6 @@ export class CoordinationService {
         background: '#ff0000',
     };
 
-    
-
     constructor() {
         // this.timelineService.updated$.subscribe((timeline) => {
         //     this.tl.clear();
@@ -122,12 +120,21 @@ export class CoordinationService {
         //     this.tl.pause();
         //     this.gsapTimeline = this.tl;
 
-            
         // });
 
         this.timelineService.positionUpdated$.subscribe((position) => {
             this.syncGroupAndHighlight();
         });
+    }
+
+    addText() {
+        const newDiv = document.createElement('div');
+        newDiv.style.position = 'absolute';
+        newDiv.style.left = '0px';
+        newDiv.style.top = '0px';
+        newDiv.innerText = 'Some text...';
+        newDiv.contentEditable = 'true';
+        this.addElement(newDiv, 'Text');
     }
 
     addRectangle() {
@@ -138,9 +145,12 @@ export class CoordinationService {
         newDiv.style.left = '0px';
         newDiv.style.top = '0px';
         newDiv.style.backgroundColor = 'red';
+        this.addElement(newDiv, 'Rectangle');
+    }
 
+    addElement(newDiv: HTMLElement, type: string) {
         let newGroup: Partial<Group> = {
-            name: 'Rectangle',
+            name: type,
             expanded: true,
             target: newDiv,
         };
