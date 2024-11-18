@@ -9,6 +9,10 @@ export interface Path {
     parts: any[];
     color: string;
     strokeWidth: string;
+    totalLength: number;
+    strokeDashArrayOffset: number;
+    strokeDashArray: number;
+
 }
 
 @Component({
@@ -145,12 +149,15 @@ export class PentoolComponent {
             // this.selectedPathIndex = this.paths.length;
             // this.paths.push(p);
 
-            const newPath = {
+            const newPath: Path = {
                 name: 'Path' + this.paths.length,
                 d: p,
                 parts: [],
                 color: '#000000',
                 strokeWidth: '5px',
+                totalLength: 0,
+                strokeDashArray: 0,
+                strokeDashArrayOffset: 0
             };
             this.paths.push(newPath);
             this.selectedPath = newPath;
@@ -249,5 +256,12 @@ export class PentoolComponent {
     selectPath(p: Path) {
         this.selectedPath = p;
         this.updatePath();
+    }
+
+    calculatePathLength(path: Path) {
+        const pathElement = (document.getElementById('path'+this.paths.indexOf(path)) as unknown) as SVGPathElement;
+       // pathElement.getTotalLength(); // 988.0062255859375
+        path.totalLength = pathElement.getTotalLength();
+        path.strokeDashArray = path.totalLength;
     }
 }

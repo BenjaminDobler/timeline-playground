@@ -1,10 +1,13 @@
 <svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
     @for (path of paths; track path) {
         <path
+            [attr.id]="'path' + $index"
             (mousedown)="onPath(path)"
             [attr.d]="path.d"
             [attr.stroke-width]="path.strokeWidth"
             [attr.stroke]="path.color"
+            [attr.stroke-dasharray]="path.strokeDashArray"
+            [attr.stroke-dashoffset]="path.strokeDashArrayOffset"
             fill="transparent"
         />
     }
@@ -57,7 +60,13 @@
     @for (path of paths; track $index) {
         <div>
             <span (click)="selectPath(path)">{{ path.name }}</span>
-            <input [(ngModel)]="path.color" />
+            <div style="margin-left: 20px;">
+                <input [(ngModel)]="path.color" />
+                <button (click)="calculatePathLength(path)">cal path length</button>
+                {{ path.totalLength }}<br>
+                {{ path.strokeDashArrayOffset }}<br>
+                <input type="range" [min]="0" [max]="path.totalLength" (input)="path.strokeDashArrayOffset = $any($event).target.value" />
+            </div>
         </div>
     }
 
