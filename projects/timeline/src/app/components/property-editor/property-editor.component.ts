@@ -7,10 +7,9 @@ import { Animateable } from '../timeline/model/timeline.model';
 
 @Component({
     selector: 'property-editor',
-    standalone: true,
     imports: [CommonModule, FormsModule, ColorPickerModule],
     templateUrl: './property-editor.component.html',
-    styleUrl: './property-editor.component.scss',
+    styleUrl: './property-editor.component.scss'
 })
 export class PropertyEditorComponent {
 

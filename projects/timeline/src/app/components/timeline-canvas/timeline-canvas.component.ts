@@ -4,10 +4,9 @@ import { CoordinationService } from '../timeline/service/coordination.service';
 
 @Component({
     selector: 'timeline-canvas',
-    standalone: true,
     imports: [CommonModule],
     templateUrl: './timeline-canvas.component.html',
-    styleUrl: './timeline-canvas.component.scss',
+    styleUrl: './timeline-canvas.component.scss'
 })
 export class TimelineCanvasComponent {
 

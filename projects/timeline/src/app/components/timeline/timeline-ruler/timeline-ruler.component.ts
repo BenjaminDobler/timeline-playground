@@ -4,10 +4,9 @@ import { DragableDirective } from '../../../directives/dragable.directive';
 
 @Component({
     selector: 'timeline-ruler',
-    standalone: true,
     imports: [CommonModule, DragableDirective],
     templateUrl: './timeline-ruler.component.html',
-    styleUrl: './timeline-ruler.component.scss',
+    styleUrl: './timeline-ruler.component.scss'
 })
 export class TimelineRulerComponent {
     unitPatterPath = '';

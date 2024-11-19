@@ -17,10 +17,9 @@ export interface Path {
 
 @Component({
     selector: 'pentool',
-    standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './pentool.component.html',
-    styleUrl: './pentool.component.scss',
+    styleUrl: './pentool.component.scss'
 })
 export class PentoolComponent {
     mode: 'pen' | 'select' | 'edit' = 'pen';

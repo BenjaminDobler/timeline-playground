@@ -13,7 +13,6 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'timeline',
-    standalone: true,
     imports: [
         CommonModule,
         TimelineRulerComponent,
@@ -25,7 +24,7 @@ import { FormsModule } from '@angular/forms';
         FormsModule,
     ],
     templateUrl: './timeline.component.html',
-    styleUrl: './timeline.component.scss',
+    styleUrl: './timeline.component.scss'
 })
 export class TimelineComponent {
     timelineService: TimelineService = inject(TimelineService);
