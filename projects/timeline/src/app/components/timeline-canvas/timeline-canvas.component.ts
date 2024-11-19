@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
 import { CoordinationService } from '../timeline/service/coordination.service';
 
 @Component({
     selector: 'timeline-canvas',
     imports: [CommonModule],
     templateUrl: './timeline-canvas.component.html',
-    styleUrl: './timeline-canvas.component.scss'
+    styleUrl: './timeline-canvas.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimelineCanvasComponent {
 

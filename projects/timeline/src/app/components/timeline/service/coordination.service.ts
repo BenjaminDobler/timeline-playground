@@ -1,7 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { TimelineService } from './timeline.service';
 import gsap from 'gsap';
-import { Animateable, Rectangle, TextDiv } from '../model/timeline.model';
+import { Animateable, Keyframe, Rectangle, TextDiv, Track } from '../model/timeline.model';
 import { Subject, fromEvent, map, switchMap, takeUntil, tap } from 'rxjs';
 
 function drag(target: HTMLElement, parentElement: HTMLElement) {
@@ -65,14 +65,19 @@ export class CoordinationService {
 
     gsapTimeline: gsap.core.Timeline | null = null;
 
-    selectedProperties: any = {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        rotation: 0,
-        background: '#ff0000',
-    };
+    selectedProperties: any = signal({
+        x: signal(0),
+        y: signal(0),
+        position: signal({
+            x: 0,
+            y: 0,
+        }),
+        width: signal(0),
+        height: signal(0),
+        rotation: signal(9),
+        background: signal('#ff0000'),
+        borderRadius: signal(0)
+    });
 
     constructor() {
         this.timelineService.positionUpdated$.subscribe((position) => {
@@ -121,75 +126,86 @@ export class CoordinationService {
         dragging.subscribe((props) => {
             // this.propertyChanged('x', props.x, false);
             // this.propertyChanged('y', props.y, false);
-            this.propertyChanged('position', {x: props.x, y: props.y}, false);
+            this.propertyChanged('position', { x: props.x, y: props.y }, false);
         });
 
         dragend.subscribe(() => {
             this.updateTimeline();
         });
 
-        animateable.tracks = [
+        animateable.tracks.set([
             {
-                keyframes: [
-                    { time: 0, value: {
-                        x: 0,
-                        y: 0
-                    } },
+                keyframes: signal([
+                    {
+                        time: signal(0),
+                        value: signal({
+                            x: 0,
+                            y: 0,
+                        }),
+                    },
                     // { time: 22000, value: 200 },
                     // { time: 26000, value: 200 },
                     // { time: 34000, value: 0 },
-                ],
+                ]),
                 name: 'position',
-                tweens: [],
-            }
-        ];
+                tweens: signal([]),
+            },
+        ]);
         this.timelineService.addGroup(animateable);
         this.timelineService.updated();
         this.setSelectedGroup(animateable);
     }
 
     propertyChanged(prop: string, value: any, updateTimeline = true) {
+        console.log('changed ', this.selectedProperties());
+        const selectedProperties = this.selectedProperties();
         if (this.selectedGroup) {
             let trackName = prop;
-            let track = this.selectedGroup.tracks.find((track) => track.name === prop);
+            let track = this.selectedGroup.tracks().find((track) => track.name === prop);
             if (!track) {
                 track = {
                     name: prop,
-                    keyframes: [],
-                    tweens: [],
+                    keyframes: signal([]),
+                    tweens: signal([]),
                 };
-                this.selectedGroup.tracks.push(track);
+                this.selectedGroup.tracks.update((t) => [...t, track as Track]);
             }
-            const existingKeyframe = track?.keyframes.find((keyframe) => keyframe.time === this.timelineService.timeline.position);
+            const existingKeyframe = track?.keyframes().find((keyframe) => keyframe.time() === this.timelineService.position());
 
             if (existingKeyframe) {
                 existingKeyframe.value = value;
             } else {
                 const newKeyframe = {
-                    time: this.timelineService.timeline.position,
-                    value: value,
+                    time: signal(this.timelineService.position()),
+                    value: signal(value),
                 };
                 if (track) {
-                    track.keyframes.push(newKeyframe);
+                    track.keyframes.update((k) => [...k, newKeyframe as unknown as Keyframe]);
                 }
             }
-            track?.keyframes.sort((a, b) => a.time - b.time);
+            track?.keyframes().sort((a, b) => a.time() - b.time());
             if (updateTimeline) {
                 this.updateTimeline();
             }
         }
 
         if (this.selectedGroup) {
-            this.selectedProperties[prop] = value;
-
-            console.log('selected properties ', this.selectedProperties);
+            if (selectedProperties[prop]) {
+                selectedProperties[prop].set(value);
+            } else {
+                selectedProperties[prop] = signal(value);
+            }
 
             if (this.highlight) {
-                this.highlight.style.transform = `translate(${this.selectedProperties.position.x - 5}px,${this.selectedProperties.position.y - 5}px)`;
-                this.highlight.style.height = this.selectedProperties.height + 10 + 'px';
-                this.highlight.style.width = this.selectedProperties.width + 10 + 'px';
+                this.highlight.style.transform = `translate(${selectedProperties.position().x - 5}px,${selectedProperties.position().y - 5}px)`;
+                this.highlight.style.height = selectedProperties.height() + 10 + 'px';
+                this.highlight.style.width = selectedProperties.width() + 10 + 'px';
             }
         }
+
+        console.log('position ', this.selectedProperties().position().x);
+        console.log('width ', this.selectedProperties().width());
+
     }
 
     setSelectedGroup(group: Animateable) {
@@ -199,27 +215,29 @@ export class CoordinationService {
     }
 
     syncGroupAndHighlight() {
+        let selectedProperties = this.selectedProperties();
         if (this.selectedGroup) {
-            // this.selectedProperties.x = gsap.getProperty(this.selectedGroup.animationTarget, 'x');
-            // this.selectedProperties.y = gsap.getProperty(this.selectedGroup.animationTarget, 'y');
-            this.selectedProperties.position = {
+            this.selectedProperties().position.set({
                 x: gsap.getProperty(this.selectedGroup.animationTarget, 'x'),
-                y: gsap.getProperty(this.selectedGroup.animationTarget, 'y')
-            }
-            this.selectedProperties.width = gsap.getProperty(this.selectedGroup.animationTarget, 'width');
-            this.selectedProperties.height = gsap.getProperty(this.selectedGroup.animationTarget, 'height');
-            this.selectedProperties.rotation = gsap.getProperty(this.selectedGroup.animationTarget, 'rotation');
+                y: gsap.getProperty(this.selectedGroup.animationTarget, 'y'),
+            });
+
+            selectedProperties = this.selectedProperties();
+
+            selectedProperties.width.set(gsap.getProperty(this.selectedGroup.animationTarget, 'width'));
+            selectedProperties.height.set(gsap.getProperty(this.selectedGroup.animationTarget, 'height'));
+            selectedProperties.rotation.set(gsap.getProperty(this.selectedGroup.animationTarget, 'rotation'));
 
             if (this.highlight) {
-                this.highlight.style.transform = `translate(${this.selectedProperties.position.x - 5}px,${this.selectedProperties.position.y - 5}px)`;
-                this.highlight.style.height = this.selectedProperties.height + 10 + 'px';
-                this.highlight.style.width = this.selectedProperties.width + 10 + 'px';
+                this.highlight.style.transform = `translate(${selectedProperties.position().x - 5}px,${this.selectedProperties().position().y - 5}px)`;
+                this.highlight.style.height = selectedProperties.height() + 10 + 'px';
+                this.highlight.style.width = selectedProperties.width() + 10 + 'px';
             }
         }
     }
 
     updateTimeline() {
         this.timelineService.updated();
-        this.gsapTimeline?.seek(this.timelineService.timeline.position / 1000);
+        this.gsapTimeline?.seek(this.timelineService.position() / 1000);
     }
 }

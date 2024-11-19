@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Input, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, inject, viewChild } from '@angular/core';
 import { TimelineRulerComponent } from './timeline-ruler/timeline-ruler.component';
-import { Animateable, Keyframe, Timeline, Track, Tween } from './model/timeline.model';
+import { Animateable, Keyframe, Track, Tween } from './model/timeline.model';
 import { TimelineService } from './service/timeline.service';
 import { DragableDirective } from '../../directives/dragable.directive';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
@@ -24,12 +24,12 @@ import { FormsModule } from '@angular/forms';
         FormsModule,
     ],
     templateUrl: './timeline.component.html',
-    styleUrl: './timeline.component.scss'
+    styleUrl: './timeline.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TimelineComponent {
     timelineService: TimelineService = inject(TimelineService);
-    @Input()
-    timeline: Timeline | null = null;
+    
 
     cm? = viewChild<ContextMenu>('cm');
     eadingDialogVisible = false;
@@ -80,14 +80,14 @@ export class TimelineComponent {
     }
 
     onScrubDragged(event: any) {
-        if (this.timeline) {
-            this.timelineService.updatePosition(event.x / this.timeline.pixelsPerMilliseconds);
+        if (this.timelineService) {
+            this.timelineService.updatePosition(event.x / this.timelineService.pixelsPerMilliseconds());
         }
     }
 
     onKeyframeDragged(event: any, keyframe: Keyframe) {
-        if (this.timeline) {
-            this.timelineService.keyframePositionChanged(event.x / this.timeline.pixelsPerMilliseconds, keyframe);
+        if (this.timelineService) {
+            this.timelineService.keyframePositionChanged(event.x / this.timelineService.pixelsPerMilliseconds(), keyframe);
         }
     }
 }

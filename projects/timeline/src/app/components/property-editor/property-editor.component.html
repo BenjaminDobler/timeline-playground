@@ -1,20 +1,36 @@
-
-
-
-
 @let ani = animatable();
 
 @if (ani) {
+    @let selectedProperties = coordinator.selectedProperties();
 
-    @for(prop of ani.properties; track $index) {
-        @if(prop.type === 'number') {
-        <div class="property-group">
-            <div class="input-group">
-                <label>{{prop.displayName}}</label
-                ><input (ngModelChange)="coordinator.propertyChanged(prop.name, $event)" type="text" [(ngModel)]="coordinator.selectedProperties[prop.name]" />
+    {{ selectedProperties.position().x }}
+
+    <input (ngModelChange)="coordinator.propertyChanged('width', $event)" [(ngModel)]="selectedProperties.width" />
+
+    @for (prop of ani.properties; track $index) {
+        @if (prop.type === "number" && prop.group) {
+            <div class="property-group">
+                <div class="input-group">
+                    <label>{{ prop.displayName }}</label>
+                    <input
+                        (ngModelChange)="coordinator.propertyChanged(prop.name, $event)"
+                        type="text"
+                        [(ngModel)]="selectedProperties[prop.group]()[prop.name]"
+                    />
+                </div>
             </div>
-        </div>
-        } @else if(prop.type === 'color') {
+        } @else if (prop.type === "number") {
+            <div class="property-group">
+                <div class="input-group">
+                    <label>{{ prop.displayName }}</label
+                    ><input
+                        (ngModelChange)="coordinator.propertyChanged(prop.name, $event)"
+                        type="text"
+                        [(ngModel)]="selectedProperties[prop.name]"
+                    />
+                </div>
+            </div>
+        } @else if (prop.type === "color") {
             <div class="property-group">
                 <div class="input-group">
                     <input
@@ -23,13 +39,13 @@
                         id="head"
                         name="head"
                         (ngModelChange)="coordinator.propertyChanged(prop.name, $event)"
-                        [(ngModel)]="coordinator.selectedProperties[prop.name]"
+                        [(ngModel)]="selectedProperties[prop.name]"
                     />
-            
+
                     <input
                         (ngModelChange)="coordinator.propertyChanged(prop.name, $event)"
                         type="text"
-                        [(ngModel)]="coordinator.selectedProperties[prop.name]"
+                        [(ngModel)]="selectedProperties[prop.name]"
                     />
                 </div>
             </div>
@@ -37,7 +53,7 @@
     }
 }
 
-
+<!-- 
 <div class="property-group">
     <div class="input-group">
         <label>x</label
@@ -107,4 +123,4 @@
             [(ngModel)]="coordinator.selectedProperties.background"
         />
     </div>
-</div>
+</div> -->

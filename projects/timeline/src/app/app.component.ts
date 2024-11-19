@@ -1,6 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { TimelineRulerComponent } from './components/timeline/timeline-ruler/timeline-ruler.component';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TimelineComponent } from './components/timeline/timeline.component';
@@ -13,8 +11,6 @@ import { ButtonModule } from 'primeng/button';
 @Component({
     selector: 'app-root',
     imports: [
-        RouterOutlet,
-        TimelineRulerComponent,
         ButtonModule,
         CommonModule,
         FormsModule,
@@ -23,7 +19,8 @@ import { ButtonModule } from 'primeng/button';
         PropertyEditorComponent,
     ],
     templateUrl: './app.component.html',
-    styleUrl: './app.component.scss'
+    styleUrl: './app.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
     title = 'timeline';

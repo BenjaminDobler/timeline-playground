@@ -21,7 +21,6 @@
             "index": "projects/timeline/src/index.html",
             "browser": "projects/timeline/src/main.ts",
             "polyfills": [
-              "zone.js"
             ],
             "tsConfig": "projects/timeline/tsconfig.app.json",
             "inlineStyleLanguage": "scss",

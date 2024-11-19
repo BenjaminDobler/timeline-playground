@@ -1,4 +1,4 @@
-@if (timeline) {
+@if (timelineService) {
     <div class="timeline-container">
         <div class="label-group">
             <div class="label-ruler">
@@ -21,13 +21,13 @@
                 }
             </div>
 
-            @for (group of timeline.groups; track group) {
+            @for (group of timelineService.groups(); track group) {
                 <div class="group label" (click)="group.uiExpanded = !group.uiExpanded">
                     {{ group?.name }}
                 </div>
 
                 @if (group.uiExpanded) {
-                    @for (track of group.tracks; track track) {
+                    @for (track of group.tracks(); track track) {
                         <div class="track label">
                             {{ track?.name }}
                         </div>
@@ -41,39 +41,39 @@
         <div class="track-group">
             <div
                 class="scroll-indicator"
-                [style.transform]="'translateX(' + timeline.pixelsPerMilliseconds * timeline.position + 'px)'"
+                [style.transform]="'translateX(' + timelineService.pixelsPerMilliseconds() * timelineService.position() + 'px)'"
             ></div>
 
             <timeline-ruler
                 (dragging)="onScrubDragged($event)"
-                [position]="timeline.position"
-                [pixelsPerMilliseconds]="timeline.pixelsPerMilliseconds"
-                [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'"
+                [position]="timelineService.position()"
+                [pixelsPerMilliseconds]="timelineService.pixelsPerMilliseconds()"
+                [style.width]="timelineService.pixelsPerMilliseconds() * timelineService.duration() + 'px'"
                 (onPosition)="timelineService.updatePosition($event)"
             ></timeline-ruler>
 
-            @for (group of timeline.groups; track group) {
-                <div class="group" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'"></div>
+            @for (group of timelineService.groups(); track group) {
+                <div class="group" [style.width]="timelineService.pixelsPerMilliseconds() * timelineService.duration() + 'px'"></div>
 
                 @if (group.uiExpanded) {
-                    @for (track of group.tracks; track track) {
-                        <div class="track" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'">
-                            @for (tween of track.tweens; track $index) {
+                    @for (track of group.tracks(); track track) {
+                        <div class="track" [style.width]="timelineService.pixelsPerMilliseconds() * timelineService.duration() + 'px'">
+                            @for (tween of track.tweens(); track $index) {
                                 <div
                                     class="tween"
                                     (contextmenu)="onTweenContextMenu($event, tween)"
-                                    [style.transform]="'translateX(' + tween.start.time * timeline.pixelsPerMilliseconds + 'px)'"
-                                    [style.width]="(tween.end.time - tween.start.time) * timeline.pixelsPerMilliseconds + 'px'"
+                                    [style.transform]="'translateX(' + tween.start().time() * timelineService.pixelsPerMilliseconds() + 'px)'"
+                                    [style.width]="(tween.end().time() - tween.start().time()) * timelineService.pixelsPerMilliseconds() + 'px'"
                                 ></div>
                             }
 
-                            @for (keyframe of track.keyframes; track keyframe) {
+                            @for (keyframe of track.keyframes(); track keyframe) {
                                 <div
                                     class="keyframe"
                                     (contextmenu)="onKeyframeContextMenu($event, keyframe, track, group)"
                                     draggable
                                     (dragging)="onKeyframeDragged($event, keyframe)"
-                                    [style.transform]="'translateX(' + keyframe.time * timeline.pixelsPerMilliseconds + 'px)'"
+                                    [style.transform]="'translateX(' + keyframe.time() * timelineService.pixelsPerMilliseconds() + 'px)'"
                                 >
                                     <div class="diamond"></div>
                                 </div>
