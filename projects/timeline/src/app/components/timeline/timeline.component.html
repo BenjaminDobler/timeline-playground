@@ -22,11 +22,11 @@
             </div>
 
             @for (group of timeline.groups; track group) {
-                <div class="group label" (click)="group.expanded = !group.expanded">
+                <div class="group label" (click)="group.uiExpanded = !group.uiExpanded">
                     {{ group?.name }}
                 </div>
 
-                @if (group.expanded) {
+                @if (group.uiExpanded) {
                     @for (track of group.tracks; track track) {
                         <div class="track label">
                             {{ track?.name }}
@@ -55,7 +55,7 @@
             @for (group of timeline.groups; track group) {
                 <div class="group" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'"></div>
 
-                @if (group.expanded) {
+                @if (group.uiExpanded) {
                     @for (track of group.tracks; track track) {
                         <div class="track" [style.width]="timeline.pixelsPerMilliseconds * timeline.duration + 'px'">
                             @for (tween of track.tweens; track $index) {

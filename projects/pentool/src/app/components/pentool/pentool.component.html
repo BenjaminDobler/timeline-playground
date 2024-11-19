@@ -65,6 +65,7 @@
                 <button (click)="calculatePathLength(path)">cal path length</button>
                 {{ path.totalLength }}<br>
                 {{ path.strokeDashArrayOffset }}<br>
+                <button (click)="logPath(path)">Log Path</button>
                 <input type="range" [min]="0" [max]="path.totalLength" (input)="path.strokeDashArrayOffset = $any($event).target.value" />
             </div>
         </div>

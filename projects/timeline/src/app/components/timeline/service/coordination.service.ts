@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { TimelineService } from './timeline.service';
 import gsap from 'gsap';
-import { Group } from '../model/timeline.model';
+import { Animateable, Rectangle, TextDiv } from '../model/timeline.model';
 import { Subject, fromEvent, map, switchMap, takeUntil, tap } from 'rxjs';
 
 function drag(target: HTMLElement, parentElement: HTMLElement) {
@@ -59,7 +59,7 @@ export class CoordinationService {
     canvas: HTMLDivElement | null = null;
     highlight?: HTMLDivElement;
 
-    selectedGroup: Group | null = null;
+    selectedGroup?: Animateable;
 
     timelineService: TimelineService = inject(TimelineService);
 
@@ -75,53 +75,6 @@ export class CoordinationService {
     };
 
     constructor() {
-        // this.timelineService.updated$.subscribe((timeline) => {
-        //     this.tl.clear();
-        //     this.tweens = [];
-
-        //     timeline.groups.forEach((group) => {
-        //         group.tracks.forEach((track) => {
-        //             track.tweens = [];
-        //             track.keyframes.forEach((keyframe, index) => {
-        //                 const nextKeyframe = track.keyframes[index + 1];
-        //                 if (nextKeyframe) {
-        //                     const prop: any = {};
-
-        //                     const fromVars = {
-        //                         [track.name]: keyframe.value,
-        //                     };
-        //                     const toVars: any = {
-        //                         [track.name]: nextKeyframe.value,
-        //                         duration: (nextKeyframe.time - keyframe.time) / 1000,
-        //                     };
-
-        //                     if (!keyframe.easing || keyframe.easing === 'default') {
-        //                     } else {
-        //                         console.log('set keyframe easing ', keyframe.easing);
-        //                         toVars.ease = keyframe.easing;
-        //                     }
-
-        //                     track.tweens.push({
-        //                         start: keyframe,
-        //                         end: nextKeyframe,
-        //                     });
-
-        //                     this.tl.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
-        //                 } else {
-        //                     const props: any = {
-        //                         [track.name]: keyframe.value,
-        //                     };
-        //                     this.tl.set(group.target, props, keyframe.time);
-        //                 }
-        //             });
-        //         });
-        //     });
-
-        //     this.tl.pause();
-        //     this.gsapTimeline = this.tl;
-
-        // });
-
         this.timelineService.positionUpdated$.subscribe((position) => {
             this.syncGroupAndHighlight();
         });
@@ -134,7 +87,10 @@ export class CoordinationService {
         newDiv.style.top = '0px';
         newDiv.innerText = 'Some text...';
         newDiv.contentEditable = 'true';
-        this.addElement(newDiv, 'Text');
+
+        const animateable = new TextDiv(newDiv, newDiv);
+        this.addElement(animateable);
+        // this.addElement(newDiv, 'Text');
     }
 
     addRectangle() {
@@ -145,61 +101,56 @@ export class CoordinationService {
         newDiv.style.left = '0px';
         newDiv.style.top = '0px';
         newDiv.style.backgroundColor = 'red';
-        this.addElement(newDiv, 'Rectangle');
+
+        const animateable = new Rectangle(newDiv, newDiv);
+
+        this.addElement(animateable);
     }
 
-    addElement(newDiv: HTMLElement, type: string) {
-        let newGroup: Partial<Group> = {
-            name: type,
-            expanded: true,
-            target: newDiv,
-        };
+    addElement(animateable: Animateable) {
         if (this.canvas !== null) {
-            this.canvas.appendChild(newDiv);
+            this.canvas.appendChild(animateable.domRef);
             //document.body.insertBefore(this.canvas, newDiv);
         }
 
-        const { dragging, dragend } = drag(newDiv, this.canvas as HTMLElement);
+        const { dragging, dragend } = drag(animateable.domRef, this.canvas as HTMLElement);
 
-        fromEvent(newDiv, 'mousedown').subscribe(() => {
-            this.setSelectedGroup(newGroup as Group);
+        fromEvent(animateable.domRef, 'mousedown').subscribe(() => {
+            this.setSelectedGroup(animateable);
         });
         dragging.subscribe((props) => {
-            this.propertyChanged('x', props.x, false);
-            this.propertyChanged('y', props.y, false);
+            // this.propertyChanged('x', props.x, false);
+            // this.propertyChanged('y', props.y, false);
+            this.propertyChanged('position', {x: props.x, y: props.y}, false);
         });
 
         dragend.subscribe(() => {
             this.updateTimeline();
         });
 
-        newGroup.tracks = [
+        animateable.tracks = [
             {
                 keyframes: [
-                    { time: 0, value: 0 },
+                    { time: 0, value: {
+                        x: 0,
+                        y: 0
+                    } },
                     // { time: 22000, value: 200 },
                     // { time: 26000, value: 200 },
                     // { time: 34000, value: 0 },
                 ],
-                name: 'x',
+                name: 'position',
                 tweens: [],
-            },
-            {
-                keyframes: [
-                    { time: 0, value: 0 },
-                    // { time: 22000, value: 200 },
-                ],
-                name: 'y',
-                tweens: [],
-            },
+            }
         ];
-        this.timelineService.addGroup(newGroup as Group);
+        this.timelineService.addGroup(animateable);
         this.timelineService.updated();
-        this.setSelectedGroup(newGroup as Group);
+        this.setSelectedGroup(animateable);
     }
 
-    propertyChanged(prop: string, value: number, updateTimeline = true) {
+    propertyChanged(prop: string, value: any, updateTimeline = true) {
         if (this.selectedGroup) {
+            let trackName = prop;
             let track = this.selectedGroup.tracks.find((track) => track.name === prop);
             if (!track) {
                 track = {
@@ -231,15 +182,17 @@ export class CoordinationService {
         if (this.selectedGroup) {
             this.selectedProperties[prop] = value;
 
+            console.log('selected properties ', this.selectedProperties);
+
             if (this.highlight) {
-                this.highlight.style.transform = `translate(${this.selectedProperties.x - 5}px,${this.selectedProperties.y - 5}px)`;
+                this.highlight.style.transform = `translate(${this.selectedProperties.position.x - 5}px,${this.selectedProperties.position.y - 5}px)`;
                 this.highlight.style.height = this.selectedProperties.height + 10 + 'px';
                 this.highlight.style.width = this.selectedProperties.width + 10 + 'px';
             }
         }
     }
 
-    setSelectedGroup(group: Group) {
+    setSelectedGroup(group: Animateable) {
         this.selectedGroup = group;
         this.syncGroupAndHighlight();
         // this.updateTimeline();
@@ -247,14 +200,18 @@ export class CoordinationService {
 
     syncGroupAndHighlight() {
         if (this.selectedGroup) {
-            this.selectedProperties.x = gsap.getProperty(this.selectedGroup.target, 'x');
-            this.selectedProperties.y = gsap.getProperty(this.selectedGroup.target, 'y');
-            this.selectedProperties.width = gsap.getProperty(this.selectedGroup.target, 'width');
-            this.selectedProperties.height = gsap.getProperty(this.selectedGroup.target, 'height');
-            this.selectedProperties.rotation = gsap.getProperty(this.selectedGroup.target, 'rotation');
+            // this.selectedProperties.x = gsap.getProperty(this.selectedGroup.animationTarget, 'x');
+            // this.selectedProperties.y = gsap.getProperty(this.selectedGroup.animationTarget, 'y');
+            this.selectedProperties.position = {
+                x: gsap.getProperty(this.selectedGroup.animationTarget, 'x'),
+                y: gsap.getProperty(this.selectedGroup.animationTarget, 'y')
+            }
+            this.selectedProperties.width = gsap.getProperty(this.selectedGroup.animationTarget, 'width');
+            this.selectedProperties.height = gsap.getProperty(this.selectedGroup.animationTarget, 'height');
+            this.selectedProperties.rotation = gsap.getProperty(this.selectedGroup.animationTarget, 'rotation');
 
             if (this.highlight) {
-                this.highlight.style.transform = `translate(${this.selectedProperties.x - 5}px,${this.selectedProperties.y - 5}px)`;
+                this.highlight.style.transform = `translate(${this.selectedProperties.position.x - 5}px,${this.selectedProperties.position.y - 5}px)`;
                 this.highlight.style.height = this.selectedProperties.height + 10 + 'px';
                 this.highlight.style.width = this.selectedProperties.width + 10 + 'px';
             }

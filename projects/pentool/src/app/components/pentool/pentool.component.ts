@@ -264,4 +264,8 @@ export class PentoolComponent {
         path.totalLength = pathElement.getTotalLength();
         path.strokeDashArray = path.totalLength;
     }
+
+    logPath(p: Path) {
+        console.log(p);
+    }
 }

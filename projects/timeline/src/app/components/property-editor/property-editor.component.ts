@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { CoordinationService } from '../timeline/service/coordination.service';
 import { FormsModule } from '@angular/forms';
 import { ColorPickerModule } from 'primeng/colorpicker';
+import { Animateable } from '../timeline/model/timeline.model';
 
 @Component({
     selector: 'property-editor',
@@ -12,5 +13,7 @@ import { ColorPickerModule } from 'primeng/colorpicker';
     styleUrl: './property-editor.component.scss',
 })
 export class PropertyEditorComponent {
+
+    animatable = input<Animateable>();
     coordinator: CoordinationService = inject(CoordinationService);
 }

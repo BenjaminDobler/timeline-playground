@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Group, Keyframe, Timeline, Track } from '../model/timeline.model';
+import { Keyframe, Timeline, Track } from '../model/timeline.model';
 import { Subject } from 'rxjs';
 import gsap from 'gsap';
+import { Animateable } from '../model/timeline.model';
 
 @Injectable({
     providedIn: 'root',
@@ -41,7 +42,7 @@ export class TimelineService {
         this.updated();
     }
 
-    addGroup(group: Group) {
+    addGroup(group: Animateable) {
         this.timeline.groups.push(group);
         this.updated();
     }
@@ -61,14 +62,24 @@ export class TimelineService {
                 track.keyframes.forEach((keyframe, index) => {
                     const nextKeyframe = track.keyframes[index + 1];
                     if (nextKeyframe) {
+                        console.log('set ', track.name, keyframe.value);
+                        console.log('set next ', track.name, nextKeyframe.value);
 
-                        const fromVars = {
-                            [track.name]: keyframe.value,
-                        };
-                        const toVars: any = {
-                            [track.name]: nextKeyframe.value,
-                            duration: (nextKeyframe.time - keyframe.time) / 1000,
-                        };
+                        let fromVars: any;
+                        let toVars: any;
+                        if (track.name === 'position') {
+                            fromVars = keyframe.value
+                            toVars = {...nextKeyframe.value, duration: (nextKeyframe.time - keyframe.time) / 1000}
+
+                        } else {
+                            fromVars = {
+                                [track.name]: keyframe.value,
+                            };
+                            toVars = {
+                                [track.name]: nextKeyframe.value,
+                                duration: (nextKeyframe.time - keyframe.time) / 1000,
+                            };
+                        }
 
                         if (!keyframe.easing || keyframe.easing === 'default') {
                         } else {
@@ -80,12 +91,12 @@ export class TimelineService {
                             end: nextKeyframe,
                         });
 
-                        this.gsapTimeline.fromTo(group.target, fromVars, toVars, keyframe.time / 1000);
+                        this.gsapTimeline.fromTo(group.animationTarget, fromVars, toVars, keyframe.time / 1000);
                     } else {
                         const props: any = {
                             [track.name]: keyframe.value,
                         };
-                        this.gsapTimeline.set(group.target, props, keyframe.time);
+                        this.gsapTimeline.set(group.animationTarget, props, keyframe.time);
                     }
                 });
             });
@@ -95,7 +106,7 @@ export class TimelineService {
         this.gsapTimeline.seek(this.timeline.position / 1000);
     }
 
-    removeKeyframe(data: { keyframe: Keyframe; track: Track; group: Group }) {
+    removeKeyframe(data: { keyframe: Keyframe; track: Track; group: Animateable }) {
         data.track.keyframes = data.track.keyframes.filter((k) => k !== data.keyframe);
         this.updated();
     }

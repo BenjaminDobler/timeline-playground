@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, inject, viewChild } from '@angular/core';
 import { TimelineRulerComponent } from './timeline-ruler/timeline-ruler.component';
-import { Group, Keyframe, Timeline, Track, Tween } from './model/timeline.model';
+import { Animateable, Keyframe, Timeline, Track, Tween } from './model/timeline.model';
 import { TimelineService } from './service/timeline.service';
 import { DragableDirective } from '../../directives/dragable.directive';
 import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
@@ -58,7 +58,7 @@ export class TimelineComponent {
         },
     ];
 
-    selectedKeyframeContex?: { track: Track; keyframe: Keyframe; group: Group };
+    selectedKeyframeContex?: { track: Track; keyframe: Keyframe; group: Animateable };
 
     easings = ['default', 'power1.out', 'power1.in', 'power1.inOut', 'bounce.out', 'bounce.in', 'bounce.inOut'];
 
@@ -71,7 +71,7 @@ export class TimelineComponent {
         }
     }
 
-    onKeyframeContextMenu(event: any, keyframe: Keyframe, track: Track, group: Group) {
+    onKeyframeContextMenu(event: any, keyframe: Keyframe, track: Track, group: Animateable) {
         this.selectedKeyframeContex = { track, keyframe, group };
         this.items = this.keyframeContextItems;
 
