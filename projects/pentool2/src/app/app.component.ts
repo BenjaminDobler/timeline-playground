@@ -49,6 +49,11 @@ function isInWhichSegment(pathElement: any, x: number, y: number) {
     return seg;
 }
 
+function insertAt(arr: any[], position: number, item: any) {
+    const newArray = [...arr.slice(0, position), item, ...arr.slice(position)];
+    return newArray;
+}
+
 @Component({
     selector: 'app-root',
     imports: [DraggerDirective],
@@ -275,42 +280,55 @@ export class AppComponent {
                 const previousPoint = this.points[pointIndex - 1];
                 let moveCount = 0;
 
-                mouseMove$.pipe(takeUntil(mouseUp$)).subscribe((evt: MouseEvent) => {
-                    moveCount++;
+                mouseMove$
+                    .pipe(
+                        takeUntil(mouseUp$),
+                        finalize(() => {
+                            if (moveCount < 3) {
+                                console.log('add node!');
+                                this.points = insertAt(this.points, pointIndex, {
+                                    x: evt.clientX,
+                                    y: evt.clientY,
+                                });
+                            }
+                        }),
+                    )
+                    .subscribe((evt: MouseEvent) => {
+                        moveCount++;
 
-                    const mousePoint = {
-                        x: evt.clientX,
-                        y: evt.clientY,
-                    };
+                        const mousePoint = {
+                            x: evt.clientX,
+                            y: evt.clientY,
+                        };
 
-                    if (moveCount > 3) {
-                        // Convert line to curve
+                        if (moveCount > 3) {
+                            // Convert line to curve
 
-                        if (!previousPoint.controlPoint2) {
-                            previousPoint.controlPoint2 = { x: 0, y: 0, type: 'curve' };
+                            if (!previousPoint.controlPoint2) {
+                                previousPoint.controlPoint2 = { x: 0, y: 0, type: 'curve' };
+                            }
+
+                            if (!p.controlPoint1) {
+                                p.controlPoint1 = { x: 0, y: 0, type: 'curve' };
+                            }
+
+                            const c1 = previousPoint.controlPoint2;
+                            const c2 = p.controlPoint1;
+
+                            let angle1 = getAngle(mousePoint, previousPoint);
+                            const distance1 = distance(previousPoint, mousePoint);
+                            const radius1 = distance1 * 0.7;
+                            c1.x = previousPoint.x + Math.cos(angle1) * radius1;
+                            c1.y = previousPoint.y + Math.sin(angle1) * radius1;
+
+                            let angle2 = getAngle(mousePoint, p);
+                            const distance2 = distance(p, mousePoint);
+                            const radius2 = distance2 * 0.7;
+                            c2.x = p.x + Math.cos(angle2) * radius2;
+                            c2.y = p.y + Math.sin(angle2) * radius2;
                         }
-
-                        if (!p.controlPoint1) {
-                            p.controlPoint1 = { x: 0, y: 0, type: 'curve' };
-                        }
-
-                        const c1 = previousPoint.controlPoint2;
-                        const c2 = p.controlPoint1;
-
-                        let angle1 = getAngle(mousePoint, previousPoint);
-                        const distance1 = distance(previousPoint, mousePoint);
-                        const radius1 = distance1 * 0.7;
-                        c1.x = previousPoint.x + Math.cos(angle1) * radius1;
-                        c1.y = previousPoint.y + Math.sin(angle1) * radius1;
-
-                        let angle2 = getAngle(mousePoint, p);
-                        const distance2 = distance(p, mousePoint);
-                        const radius2 = distance2 * 0.7;
-                        c2.x = p.x + Math.cos(angle2) * radius2;
-                        c2.y = p.y + Math.sin(angle2) * radius2;
-                    }
-                    this.draw();
-                });
+                        this.draw();
+                    });
             }
         }
 
