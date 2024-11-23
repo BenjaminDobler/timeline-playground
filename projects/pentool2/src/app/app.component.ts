@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { DraggerDirective } from '@richapps/rx-drag';
 import { filter, finalize, fromEvent, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
@@ -71,6 +71,20 @@ export class AppComponent {
 
     mode$ = new Subject<string>();
     mode = 'select';
+
+
+    isOverLine = false;
+    isCurveDragging = false;
+
+    @HostBinding('class.pen-cursor')
+    get penCursor() {
+        return this.mode === 'pen';
+    }
+
+    @HostBinding('class.curve-cursor')
+    get curveCursor() {
+        return this.mode === 'select' && (this.isOverLine || this.isCurveDragging);
+    }
 
     ngAfterViewInit() {
         fromEvent(window, 'keydown').subscribe((event: any) => {
@@ -279,6 +293,8 @@ export class AppComponent {
                 const mouseMove$ = fromEvent<MouseEvent>(window, 'mousemove');
                 const previousPoint = this.points[pointIndex - 1];
                 let moveCount = 0;
+                this.isCurveDragging = true;
+
 
                 mouseMove$
                     .pipe(
@@ -291,6 +307,7 @@ export class AppComponent {
                                     y: evt.clientY,
                                 });
                             }
+                            this.isCurveDragging = false;
                         }),
                     )
                     .subscribe((evt: MouseEvent) => {
@@ -305,11 +322,19 @@ export class AppComponent {
                             // Convert line to curve
 
                             if (!previousPoint.controlPoint2) {
-                                previousPoint.controlPoint2 = { x: 0, y: 0, type: 'curve' };
+                                previousPoint.controlPoint2 = { x: 0, y: 0, type: 'curve', centerPoint: previousPoint };
+                                if (previousPoint.controlPoint1) {
+                                    previousPoint.controlPoint2.opposite = previousPoint.controlPoint1;
+                                    previousPoint.controlPoint1.opposite = previousPoint.controlPoint2;
+                                }
                             }
 
                             if (!p.controlPoint1) {
-                                p.controlPoint1 = { x: 0, y: 0, type: 'curve' };
+                                p.controlPoint1 = { x: 0, y: 0, type: 'curve', centerPoint: p };
+                                if (p.controlPoint2) {
+                                    p.controlPoint2.opposite = p.controlPoint1;
+                                    p.controlPoint1.opposite = p.controlPoint2;
+                                }
                             }
 
                             const c1 = previousPoint.controlPoint2;
@@ -340,5 +365,18 @@ export class AppComponent {
                 console.log('Point Index', pointIndex);
             }
         }
+    }
+
+    mouseOverPath(evt: any) {
+        const segIndex = isInWhichSegment(evt.target, evt.clientX, evt.clientY);
+        const segment = evt.target.getPathData()[segIndex];
+
+        if (segment.type === 'L') {
+            this.isOverLine = true;
+        }
+    }
+
+    mouseOutPath($event: any) {
+        this.isOverLine = false;
     }
 }

@@ -1,5 +1,5 @@
 <svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
-    <path [attr.d]="d" (mousedown)="onPathClick($event)" fill="none" stroke="#000"></path>
+    <path [attr.d]="d" (mouseover)="mouseOverPath($event)" (mouseout)="mouseOutPath($event)" (mousedown)="onPathClick($event)" fill="none" stroke="#000"></path>
 
     <!-- <path fill="none" stroke-width="5" stroke="#000" (click)="onPathClick($event)" d="M249 136 L544 321 C544 321 644 454 429 496 C214 538 217 317 148 390 L74 589 L229 720 L425 721 C425 721 611 781 570 679 L660 500 L681 367 C681 367 697 211 598 171" ></path> -->
 
