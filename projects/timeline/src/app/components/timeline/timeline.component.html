@@ -62,8 +62,12 @@
                                 <div
                                     class="tween"
                                     (contextmenu)="onTweenContextMenu($event, tween)"
-                                    [style.transform]="'translateX(' + tween.start().time() * timelineService.pixelsPerMilliseconds() + 'px)'"
-                                    [style.width]="(tween.end().time() - tween.start().time()) * timelineService.pixelsPerMilliseconds() + 'px'"
+                                    [style.transform]="
+                                        'translateX(' + tween.start().time() * timelineService.pixelsPerMilliseconds() + 'px)'
+                                    "
+                                    [style.width]="
+                                        (tween.end().time() - tween.start().time()) * timelineService.pixelsPerMilliseconds() + 'px'
+                                    "
                                 ></div>
                             }
 
@@ -92,7 +96,7 @@
 
     <div class="flex align-items-center gap-3 mb-5">
         @if (selectedCMTween?.start) {
-            <p-dropdown appendTo="body" [options]="easings" [(ngModel)]="$any(selectedCMTween).start.easing" placeholder="Select easing" />
+            <p-dropdown appendTo="body" [options]="easings" [(ngModel)]="$any(selectedCMTween).start().easing" placeholder="Select easing" />
         }
     </div>
     <div class="flex justify-content-end gap-2">

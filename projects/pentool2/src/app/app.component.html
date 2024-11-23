@@ -1,0 +1,63 @@
+<svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+    <path [attr.d]="d" (mousedown)="onPathClick($event)" fill="none" stroke="#000"></path>
+
+    <!-- <path fill="none" stroke-width="5" stroke="#000" (click)="onPathClick($event)" d="M249 136 L544 321 C544 321 644 454 429 496 C214 538 217 317 148 390 L74 589 L229 720 L425 721 C425 721 611 781 570 679 L660 500 L681 367 C681 367 697 211 598 171" ></path> -->
+
+    <path [attr.d]="connectionD" fill="none" stroke="#0000ff30"></path>
+</svg>
+
+@for (point of points; track $index) {
+    <div
+        [draggable]
+        [positioning]="'transform'"
+        [resizable]="false"
+        (positionUpdated)="positionUpdated(point, $event)"
+        [class.control]="point.type === 'control'"
+        [style.transform]="'translate(' + point.x + 'px,' + point.y + 'px)'"
+        class="point"
+    >
+        <div class="inner"></div>
+    </div>
+
+    @if (point.controlPoint1) {
+        <div
+            [draggable]
+            [positioning]="'transform'"
+            [resizable]="false"
+            (positionUpdated)="positionUpdated(point.controlPoint1, $event)"
+            class="point control"
+            [style.transform]="'translate(' + point.controlPoint1.x + 'px,' + point.controlPoint1.y + 'px)'"
+        >
+            <div class="inner"></div>
+        </div>
+    }
+    @if (point.controlPoint2) {
+        <div
+            [draggable]
+            [positioning]="'transform'"
+            [resizable]="false"
+            (positionUpdated)="positionUpdated(point.controlPoint2, $event)"
+            class="point control"
+            [style.transform]="'translate(' + point.controlPoint2.x + 'px,' + point.controlPoint2.y + 'px)'"
+        >
+            <div class="inner"></div>
+        </div>
+    }
+}
+
+
+
+
+<div style="position:absolute; right: 0; top: 0">
+
+    @for(point of points;track $index) {
+        <div>
+            {{point.x}}
+            {{point.y}}
+        </div>
+    }
+</div>
+
+
+<button (click)="setMode('pen')">Pen Mode</button>
+<button (click)="setMode('select')">Select Mode</button>

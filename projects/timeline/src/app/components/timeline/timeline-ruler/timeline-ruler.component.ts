@@ -6,7 +6,7 @@ import { DragableDirective } from '../../../directives/dragable.directive';
     selector: 'timeline-ruler',
     imports: [CommonModule, DragableDirective],
     templateUrl: './timeline-ruler.component.html',
-    styleUrl: './timeline-ruler.component.scss'
+    styleUrl: './timeline-ruler.component.scss',
 })
 export class TimelineRulerComponent {
     unitPatterPath = '';
@@ -75,7 +75,6 @@ export class TimelineRulerComponent {
                 this.times.push(`${i * 100}s`);
             }
         } else {
-            console.log('---- minutes');
             unitSpace = spacePerMinute;
             this.patternWidth = unitSpace * 10;
 
@@ -100,10 +99,8 @@ export class TimelineRulerComponent {
     }
 
     onRuler(event: any) {
-        console.log('on ruler ', event.clientX);
         const rect = this.el.nativeElement.getBoundingClientRect();
         const p = event.clientX - rect.left;
-        console.log(p / this.pixelsPerMilliseconds);
         this.onPosition.emit(p / this.pixelsPerMilliseconds);
     }
 

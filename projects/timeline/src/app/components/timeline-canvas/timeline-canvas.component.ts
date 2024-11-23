@@ -11,12 +11,14 @@ import { CoordinationService } from '../timeline/service/coordination.service';
 })
 export class TimelineCanvasComponent {
 
+    svgElements = viewChild<ElementRef>('svgElements');
+    htmlElements = viewChild<ElementRef>('htmlElements');
+
     highlight = viewChild<ElementRef>('highlight');
     el: ElementRef = inject(ElementRef);
     coordinationService: CoordinationService = inject(CoordinationService);
 
     ngAfterViewInit() {
-        this.coordinationService.canvas = this.el.nativeElement;
-        this.coordinationService.highlight = this.highlight()?.nativeElement;
+        this.coordinationService.setCanvas(this);
     }
 }

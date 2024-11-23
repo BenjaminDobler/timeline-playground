@@ -1,7 +1,5 @@
 import { signal, Signal, WritableSignal } from '@angular/core';
 
-
-
 // export interface Group {
 //   name: string;
 //   expanded: boolean;
@@ -25,11 +23,13 @@ export interface Animateable {
     domRef: HTMLElement;
     uiExpanded?: boolean;
     tracks: WritableSignal<Track[]>;
+    isSvg: boolean;
 }
 
 export class Rectangle implements Animateable {
     type = 'Rectangle';
     name = 'Rectangle';
+    isSvg = false;
     // tracks = [];
     tracks = signal([]);
     properties: AnimateableProperty[] = [
@@ -48,9 +48,32 @@ export class Rectangle implements Animateable {
     ) {}
 }
 
+export class PathAnimatable implements Animateable {
+    type = 'Path';
+    name = 'Path';
+    isSvg = true;
+
+    // tracks = [];
+    tracks = signal([]);
+    properties: AnimateableProperty[] = [
+        { displayName: 'd', name: 'd', type: 'string' },
+        { displayName: 's', name: 'stroke', type: 'color' },
+        { displayName: 'sw', name: 'stroke-width', type: 'number' },
+        { displayName: 'f', name: 'fill', type: 'color' }
+
+    ];
+
+    constructor(
+        public animationTarget: any,
+        public domRef: HTMLElement,
+    ) {}
+}
+
 export class TextDiv implements Animateable {
     type = 'TextDiv';
     name = 'TextDiv';
+    isSvg = true;
+
     tracks = signal([]);
     properties: AnimateableProperty[] = [
         { displayName: 'X', name: 'x', type: 'number' },

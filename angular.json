@@ -1,194 +1,251 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
-  "version": 1,
-  "newProjectRoot": "projects",
-  "projects": {
-    "timeline": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/timeline",
-      "sourceRoot": "projects/timeline/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {
-            "outputPath": "dist/timeline",
-            "index": "projects/timeline/src/index.html",
-            "browser": "projects/timeline/src/main.ts",
-            "polyfills": [
-            ],
-            "tsConfig": "projects/timeline/tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/timeline/src/favicon.ico",
-              "projects/timeline/src/assets"
-            ],
-            "styles": [
-              "projects/timeline/src/styles.scss"
-            ],
-            "scripts": []
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+    "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+    "version": 1,
+    "newProjectRoot": "projects",
+    "projects": {
+        "timeline": {
+            "projectType": "application",
+            "schematics": {
+                "@schematics/angular:component": {
+                    "style": "scss"
                 }
-              ],
-              "outputHashing": "all"
             },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "timeline:build:production"
-            },
-            "development": {
-              "buildTarget": "timeline:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "timeline:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "projects/timeline/tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/timeline/src/favicon.ico",
-              "projects/timeline/src/assets"
-            ],
-            "styles": [
-              "projects/timeline/src/styles.scss"
-            ],
-            "scripts": []
-          }
-        }
-      }
-    },
-    "pentool": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/pentool",
-      "sourceRoot": "projects/pentool/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:application",
-          "options": {
-            "outputPath": "dist/pentool",
-            "index": "projects/pentool/src/index.html",
-            "browser": "projects/pentool/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
-            "tsConfig": "projects/pentool/tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/pentool/src/favicon.ico",
-              "projects/pentool/src/assets"
-            ],
-            "styles": [
-              "projects/pentool/src/styles.scss"
-            ],
-            "scripts": []
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+            "root": "projects/timeline",
+            "sourceRoot": "projects/timeline/src",
+            "prefix": "app",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": "dist/timeline",
+                        "index": "projects/timeline/src/index.html",
+                        "browser": "projects/timeline/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "projects/timeline/tsconfig.app.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": ["projects/timeline/src/favicon.ico", "projects/timeline/src/assets"],
+                        "styles": ["projects/timeline/src/styles.scss"],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "500kb",
+                                    "maximumError": "1mb"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "2kb",
+                                    "maximumError": "4kb"
+                                }
+                            ],
+                            "outputHashing": "all"
+                        },
+                        "development": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
                 },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                "serve": {
+                    "builder": "@angular-devkit/build-angular:dev-server",
+                    "configurations": {
+                        "production": {
+                            "buildTarget": "timeline:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "timeline:build:development"
+                        }
+                    },
+                    "defaultConfiguration": "development"
+                },
+                "extract-i18n": {
+                    "builder": "@angular-devkit/build-angular:extract-i18n",
+                    "options": {
+                        "buildTarget": "timeline:build"
+                    }
+                },
+                "test": {
+                    "builder": "@angular-devkit/build-angular:karma",
+                    "options": {
+                        "polyfills": ["zone.js", "zone.js/testing"],
+                        "tsConfig": "projects/timeline/tsconfig.spec.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": ["projects/timeline/src/favicon.ico", "projects/timeline/src/assets"],
+                        "styles": ["projects/timeline/src/styles.scss"],
+                        "scripts": []
+                    }
                 }
-              ],
-              "outputHashing": "all"
-            },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
             }
-          },
-          "defaultConfiguration": "production"
         },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "pentool:build:production"
+        "pentool": {
+            "projectType": "application",
+            "schematics": {
+                "@schematics/angular:component": {
+                    "style": "scss"
+                }
             },
-            "development": {
-              "buildTarget": "pentool:build:development"
+            "root": "projects/pentool",
+            "sourceRoot": "projects/pentool/src",
+            "prefix": "app",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": "dist/pentool",
+                        "index": "projects/pentool/src/index.html",
+                        "browser": "projects/pentool/src/main.ts",
+                        "polyfills": ["zone.js", "path-data-polyfill"],
+                        "tsConfig": "projects/pentool/tsconfig.app.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": ["projects/pentool/src/favicon.ico", "projects/pentool/src/assets"],
+                        "styles": ["projects/pentool/src/styles.scss"],
+                        "scripts": ["node_modules/path-data-polyfill/path-data-polyfill.js"]
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "500kb",
+                                    "maximumError": "1mb"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "2kb",
+                                    "maximumError": "4kb"
+                                }
+                            ],
+                            "outputHashing": "all"
+                        },
+                        "development": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular-devkit/build-angular:dev-server",
+                    "configurations": {
+                        "production": {
+                            "buildTarget": "pentool:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "pentool:build:development"
+                        }
+                    },
+                    "defaultConfiguration": "development"
+                },
+                "extract-i18n": {
+                    "builder": "@angular-devkit/build-angular:extract-i18n",
+                    "options": {
+                        "buildTarget": "pentool:build"
+                    }
+                },
+                "test": {
+                    "builder": "@angular-devkit/build-angular:karma",
+                    "options": {
+                        "polyfills": ["zone.js", "zone.js/testing", "path-data-polyfill"],
+                        "tsConfig": "projects/pentool/tsconfig.spec.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": ["projects/pentool/src/favicon.ico", "projects/pentool/src/assets"],
+                        "styles": ["projects/pentool/src/styles.scss"],
+                        "scripts": ["node_modules/path-data-polyfill/path-data-polyfill.js"]
+                    }
+                }
             }
-          },
-          "defaultConfiguration": "development"
         },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "pentool:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "projects/pentool/tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/pentool/src/favicon.ico",
-              "projects/pentool/src/assets"
-            ],
-            "styles": [
-              "projects/pentool/src/styles.scss"
-            ],
-            "scripts": []
-          }
+        "pentool2": {
+            "projectType": "application",
+            "schematics": {
+                "@schematics/angular:component": {
+                    "style": "scss"
+                }
+            },
+            "root": "projects/pentool2",
+            "sourceRoot": "projects/pentool2/src",
+            "prefix": "app",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": "dist/pentool2",
+                        "index": "projects/pentool2/src/index.html",
+                        "browser": "projects/pentool2/src/main.ts",
+                        "polyfills": ["zone.js", "node_modules/path-data-polyfill/path-data-polyfill.js"],
+                        "tsConfig": "projects/pentool2/tsconfig.app.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": [
+                            {
+                                "glob": "**/*",
+                                "input": "projects/pentool2/public"
+                            }
+                        ],
+                        "styles": ["projects/pentool2/src/styles.scss"],
+                        "scripts": ["projects/pentool2/src/polyfills/pathseg.js"]
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "500kB",
+                                    "maximumError": "1MB"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "4kB",
+                                    "maximumError": "8kB"
+                                }
+                            ],
+                            "outputHashing": "all"
+                        },
+                        "development": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular-devkit/build-angular:dev-server",
+                    "configurations": {
+                        "production": {
+                            "buildTarget": "pentool2:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "pentool2:build:development"
+                        }
+                    },
+                    "defaultConfiguration": "development"
+                },
+                "extract-i18n": {
+                    "builder": "@angular-devkit/build-angular:extract-i18n"
+                },
+                "test": {
+                    "builder": "@angular-devkit/build-angular:karma",
+                    "options": {
+                        "polyfills": ["zone.js", "zone.js/testing"],
+                        "tsConfig": "projects/pentool2/tsconfig.spec.json",
+                        "inlineStyleLanguage": "scss",
+                        "assets": [
+                            {
+                                "glob": "**/*",
+                                "input": "projects/pentool2/public"
+                            }
+                        ],
+                        "styles": ["projects/pentool2/src/styles.scss"],
+                        "scripts": []
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

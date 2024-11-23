@@ -76,7 +76,7 @@ export class TimelineService {
 
                         if (!keyframe.easing || keyframe.easing() === 'default') {
                         } else {
-                            toVars.ease = keyframe.easing;
+                            toVars.ease = keyframe.easing();
                         }
 
                         tweens.push({

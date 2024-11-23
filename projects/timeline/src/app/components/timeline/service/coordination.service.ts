@@ -1,8 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { TimelineService } from './timeline.service';
 import gsap from 'gsap';
-import { Animateable, Keyframe, Rectangle, TextDiv, Track } from '../model/timeline.model';
+import { Animateable, Keyframe, PathAnimatable, Rectangle, TextDiv, Track } from '../model/timeline.model';
 import { Subject, fromEvent, map, switchMap, takeUntil, tap } from 'rxjs';
+import { TimelineCanvasComponent } from '../../timeline-canvas/timeline-canvas.component';
 
 function drag(target: HTMLElement, parentElement: HTMLElement) {
     const dragging = new Subject<any>();
@@ -56,7 +57,6 @@ function drag(target: HTMLElement, parentElement: HTMLElement) {
     providedIn: 'root',
 })
 export class CoordinationService {
-    canvas: HTMLDivElement | null = null;
     highlight?: HTMLDivElement;
 
     selectedGroup?: Animateable;
@@ -76,13 +76,23 @@ export class CoordinationService {
         height: signal(0),
         rotation: signal(9),
         background: signal('#ff0000'),
-        borderRadius: signal(0)
+        borderRadius: signal(0),
+        d: signal('')
     });
 
     constructor() {
         this.timelineService.positionUpdated$.subscribe((position) => {
             this.syncGroupAndHighlight();
         });
+    }
+
+    htmlCanvas?: HTMLDivElement;
+    svgCanvas?: SVGElement;
+
+    setCanvas(canvas: TimelineCanvasComponent) {
+        this.highlight = canvas.highlight()?.nativeElement;
+        this.htmlCanvas = canvas.htmlElements()?.nativeElement;
+        this.svgCanvas = canvas.svgElements()?.nativeElement;
     }
 
     addText() {
@@ -96,6 +106,23 @@ export class CoordinationService {
         const animateable = new TextDiv(newDiv, newDiv);
         this.addElement(animateable);
         // this.addElement(newDiv, 'Text');
+    }
+
+    addPath() {
+        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+        iconSvg.setAttribute('width', '800');
+        iconSvg.setAttribute('height', '800');
+
+        // iconSvg.setAttribute('viewBox', '0 0 24 24');
+        iconSvg.setAttribute('stroke', 'black');
+
+        iconPath.setAttribute('d', 'M 310 125 C 310 125 484 202 484 202 L 410 390 L 124 399 C 124 399 13 246 95 186 Z');
+
+        iconSvg.appendChild(iconPath);
+        const animatable = new PathAnimatable(iconPath, iconPath as any);
+        this.addElement(animatable);
     }
 
     addRectangle() {
@@ -113,19 +140,19 @@ export class CoordinationService {
     }
 
     addElement(animateable: Animateable) {
-        if (this.canvas !== null) {
-            this.canvas.appendChild(animateable.domRef);
+        if (this.htmlCanvas && !animateable.isSvg) {
+            this.htmlCanvas.appendChild(animateable.domRef);
             //document.body.insertBefore(this.canvas, newDiv);
+        } else if (this.svgCanvas && animateable.isSvg) {
+            this.svgCanvas.appendChild(animateable.domRef);
         }
 
-        const { dragging, dragend } = drag(animateable.domRef, this.canvas as HTMLElement);
+        const { dragging, dragend } = drag(animateable.domRef, this.htmlCanvas as HTMLElement);
 
         fromEvent(animateable.domRef, 'mousedown').subscribe(() => {
             this.setSelectedGroup(animateable);
         });
         dragging.subscribe((props) => {
-            // this.propertyChanged('x', props.x, false);
-            // this.propertyChanged('y', props.y, false);
             this.propertyChanged('position', { x: props.x, y: props.y }, false);
         });
 
@@ -142,10 +169,8 @@ export class CoordinationService {
                             x: 0,
                             y: 0,
                         }),
+                        easing: signal('default'),
                     },
-                    // { time: 22000, value: 200 },
-                    // { time: 26000, value: 200 },
-                    // { time: 34000, value: 0 },
                 ]),
                 name: 'position',
                 tweens: signal([]),
@@ -157,7 +182,6 @@ export class CoordinationService {
     }
 
     propertyChanged(prop: string, value: any, updateTimeline = true) {
-        console.log('changed ', this.selectedProperties());
         const selectedProperties = this.selectedProperties();
         if (this.selectedGroup) {
             let trackName = prop;
@@ -178,6 +202,7 @@ export class CoordinationService {
                 const newKeyframe = {
                     time: signal(this.timelineService.position()),
                     value: signal(value),
+                    easing: signal('default'),
                 };
                 if (track) {
                     track.keyframes.update((k) => [...k, newKeyframe as unknown as Keyframe]);
@@ -202,13 +227,10 @@ export class CoordinationService {
                 this.highlight.style.width = selectedProperties.width() + 10 + 'px';
             }
         }
-
-        console.log('position ', this.selectedProperties().position().x);
-        console.log('width ', this.selectedProperties().width());
-
     }
 
     setSelectedGroup(group: Animateable) {
+        console.log('select group ', group);
         this.selectedGroup = group;
         this.syncGroupAndHighlight();
         // this.updateTimeline();
@@ -228,7 +250,14 @@ export class CoordinationService {
             selectedProperties.height.set(gsap.getProperty(this.selectedGroup.animationTarget, 'height'));
             selectedProperties.rotation.set(gsap.getProperty(this.selectedGroup.animationTarget, 'rotation'));
 
+            this.selectedGroup.properties.forEach((p) => {
+                if (this.selectedGroup) {                    
+                    selectedProperties[p.name].set(gsap.getProperty(this.selectedGroup.animationTarget, p.name));
+                }
+            });
+
             if (this.highlight) {
+                console.log(selectedProperties.width());
                 this.highlight.style.transform = `translate(${selectedProperties.position().x - 5}px,${this.selectedProperties().position().y - 5}px)`;
                 this.highlight.style.height = selectedProperties.height() + 10 + 'px';
                 this.highlight.style.width = selectedProperties.width() + 10 + 'px';

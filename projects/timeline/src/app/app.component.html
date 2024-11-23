@@ -2,6 +2,7 @@
     <div style="background: #2c2c2c; padding: 10px; border-bottom: solid 1px #424242">
         <p-button (click)="coordinationService.addRectangle()" label="Rectangle" />
         <p-button (click)="coordinationService.addText()" label="Text" />
+        <p-button (click)="coordinationService.addPath()" label="Path" />
 
     </div>
     <div style="display: flex; flex: 1">
@@ -10,5 +11,5 @@
         </div>
         <property-editor [animatable]="coordinationService.selectedGroup" style="width: 270px"></property-editor>
     </div>
-    <timeline style="max-height: 300px" ></timeline>
+    <timeline style="max-height: 300px"></timeline>
 </div>

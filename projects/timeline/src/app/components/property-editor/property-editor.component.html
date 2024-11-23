@@ -3,11 +3,8 @@
 @if (ani) {
     @let selectedProperties = coordinator.selectedProperties();
 
-    {{ selectedProperties.position().x }}
-
-    <input (ngModelChange)="coordinator.propertyChanged('width', $event)" [(ngModel)]="selectedProperties.width" />
-
     @for (prop of ani.properties; track $index) {
+        {{prop.name}}
         @if (prop.type === "number" && prop.group) {
             <div class="property-group">
                 <div class="input-group">
@@ -19,7 +16,7 @@
                     />
                 </div>
             </div>
-        } @else if (prop.type === "number") {
+        } @else if (prop.type === "number" || prop.type === "string") {
             <div class="property-group">
                 <div class="input-group">
                     <label>{{ prop.displayName }}</label
