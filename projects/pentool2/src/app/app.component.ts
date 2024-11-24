@@ -1,7 +1,7 @@
 import { Component, HostBinding } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { DraggerDirective } from '@richapps/rx-drag';
-import { filter, finalize, fromEvent, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
+import { filter, finalize, fromEvent, NEVER, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
 
 interface Point {
     x: number;
@@ -72,13 +72,32 @@ export class AppComponent {
     mode$ = new Subject<string>();
     mode = 'select';
 
-
     isOverLine = false;
     isCurveDragging = false;
+    isOverPoint = false;
+
+    private _selectedPathElement?: SVGPathElement | undefined;
+    public get selectedPathElement(): SVGPathElement | undefined {
+        return this._selectedPathElement;
+    }
+    public set selectedPathElement(value: SVGPathElement | undefined) {
+        if (value !== this._selectedPathElement && value) {
+            this.generatePointsFromPath(value);
+            this.selectedPathElement$.next(value);
+        }
+        this._selectedPathElement = value;
+    }
+
+    selectedPathElement$: Subject<SVGPathElement> = new Subject<SVGPathElement>();
 
     @HostBinding('class.pen-cursor')
     get penCursor() {
-        return this.mode === 'pen';
+        return this.mode === 'pen' && !(this.keyAltDown && this.overPoint);
+    }
+
+    @HostBinding('class.pen-minus')
+    get penMinusCursor() {
+        return this.mode === 'pen' && this.keyAltDown && this.overPoint;
     }
 
     @HostBinding('class.curve-cursor')
@@ -86,7 +105,79 @@ export class AppComponent {
         return this.mode === 'select' && (this.isOverLine || this.isCurveDragging);
     }
 
+    keyAltDown = false;
+    keyMetaDown = false;
+
+    generatePointsFromPath(path: SVGPathElement) {
+        const d = path.getAttribute('d');
+        const segments = (path as any).getPathData();
+        console.log(segments);
+
+        const points: Point[] = [];
+
+        segments.forEach((seg: any, index: number) => {
+            const previousPoint = points[points.length - 1];
+            if (seg.type === 'M') {
+                points.push({
+                    x: seg.values[0],
+                    y: seg.values[1],
+                });
+            }
+            if (seg.type === 'L') {
+                points.push({
+                    x: seg.values[0],
+                    y: seg.values[1],
+                });
+            }
+            if (seg.type === 'C') {
+                const point: Point = {
+                    x: seg.values[4],
+                    y: seg.values[5],
+                };
+
+                const controlPoint1: Point = {
+                    x: seg.values[0],
+                    y: seg.values[1],
+                    centerPoint: previousPoint,
+                };
+                const controlPoint2: Point = {
+                    x: seg.values[2],
+                    y: seg.values[3],
+                    centerPoint: point,
+                };
+
+                point.controlPoint1 = controlPoint2;
+                previousPoint.controlPoint2 = controlPoint1;
+
+                if (previousPoint.controlPoint1 && previousPoint.controlPoint2) {
+                    previousPoint.controlPoint1.opposite = previousPoint.controlPoint2;
+                    previousPoint.controlPoint2.opposite = previousPoint.controlPoint1;
+                }
+
+                points.push(point);
+            }
+        });
+
+        this.points = points;
+
+        console.log(d);
+        this.draw();
+    }
+
     ngAfterViewInit() {
+        this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mousedown'))).subscribe(($event) => {
+            this.onPathClick($event);
+        });
+
+        this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mouseover'))).subscribe(($event) => {
+            console.log('OVER PATH');
+            this.mouseOverPath($event);
+        });
+
+        this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mouseout'))).subscribe(($event) => {
+            this.mouseOutPath($event);
+        });
+
         fromEvent(window, 'keydown').subscribe((event: any) => {
             console.log('key down', event);
             if (event.code === 'Escape') {
@@ -99,11 +190,23 @@ export class AppComponent {
             if (event.key === 'p') {
                 this.mode = 'pen';
             }
+
+            this.keyAltDown = event.altKey;
+            console.log('alt key down ', event.altKey);
+
+            if (event.key === 'Meta') {
+                this.keyMetaDown = true;
+            }
             // if (event.key === 'p') {
             //     this.mode = 'pen';
             // } else if (event.key === 's') {
             //     this.mode = 'select';
             // }
+        });
+
+        fromEvent(window, 'keyup').subscribe((event: any) => {
+            this.keyAltDown = false;
+            this.keyMetaDown = false;
         });
 
         const mouseDown$ = fromEvent<MouseEvent>(window, 'mousedown');
@@ -115,8 +218,6 @@ export class AppComponent {
 
         mouseMove$.pipe(filter((x) => !this.dragging)).subscribe((evt: MouseEvent) => {
             if (this.mode === 'pen') {
-                console.log('moving...');
-
                 this.draw({ x: evt.clientX, y: evt.clientY, type: 'move' });
             }
         });
@@ -251,8 +352,12 @@ export class AppComponent {
             i++;
         }
 
-        this.d = d;
+        // this.d = d;
         this.connectionD = connectionD;
+
+        if (this.selectedPathElement) {
+            this.selectedPathElement.setAttribute('d', d);
+        }
     }
 
     positionUpdated(point: Point, event: any) {
@@ -282,6 +387,7 @@ export class AppComponent {
     }
 
     onPathClick(evt: any) {
+        console.log('on path click');
         const segIndex = isInWhichSegment(evt.target, evt.clientX, evt.clientY);
         const segment = evt.target.getPathData()[segIndex];
 
@@ -294,7 +400,6 @@ export class AppComponent {
                 const previousPoint = this.points[pointIndex - 1];
                 let moveCount = 0;
                 this.isCurveDragging = true;
-
 
                 mouseMove$
                     .pipe(
@@ -378,5 +483,21 @@ export class AppComponent {
 
     mouseOutPath($event: any) {
         this.isOverLine = false;
+    }
+
+    onPointClick(event: MouseEvent, point: Point) {
+        console.log('alt key', event.altKey);
+        if (event.altKey) {
+            this.points = this.points.filter((p) => p !== point);
+            this.draw();
+        }
+    }
+
+    overPoint(event: MouseEvent) {
+        this.isOverPoint = true;
+    }
+
+    outPoint(event: MouseEvent) {
+        this.isOverPoint = false;
     }
 }

@@ -10,6 +10,10 @@
     &.curve-cursor {
         cursor: url('/assets/cursor/pen-curve.png'), auto;
     }
+
+    &.pen-minus {
+        cursor: url('/assets/cursor/pen-minus.png'), auto;
+    }
 }
 
 path {
@@ -47,7 +51,7 @@ path {
         .inner {
             transform: translate(-3px, -3px);
 
-            background: #0000ff30;
+            background: #0000ff;
             width: 6px;
             height: 6px;
 

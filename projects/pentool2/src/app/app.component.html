@@ -1,10 +1,37 @@
-<svg style="position: absolute; top: 0; left: 0" style="background: #dedede" width="800" height="800" xmlns="http://www.w3.org/2000/svg">
-    <path [attr.d]="d" (mouseover)="mouseOverPath($event)" (mouseout)="mouseOutPath($event)" (mousedown)="onPathClick($event)" fill="none" stroke="#000"></path>
+    <svg
+        style="position: absolute; top: 0; left: 0"
+        style="background: #111"
+        width="800"
+        height="800"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <defs>
+            <pattern id=":S4:" patternUnits="userSpaceOnUse" width="20" height="20">
+                <circle r="1" cx="10" cy="10" fill="#313131"></circle>
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#:S4:)"></rect>
 
-    <!-- <path fill="none" stroke-width="5" stroke="#000" (click)="onPathClick($event)" d="M249 136 L544 321 C544 321 644 454 429 496 C214 538 217 317 148 390 L74 589 L229 720 L425 721 C425 721 611 781 570 679 L660 500 L681 367 C681 367 697 211 598 171" ></path> -->
+        <path
+            [attr.d]="d"
+            (mouseover)="mouseOverPath($event)"
+            (mouseout)="mouseOutPath($event)"
+            (mousedown)="onPathClick($event)"
+            fill="none"
+            stroke="#fff"
+        ></path>
 
-    <path [attr.d]="connectionD" fill="none" stroke="#0000ff30"></path>
-</svg>
+        <!-- <path fill="none" stroke-width="5" stroke="#000" (click)="onPathClick($event)" d="M249 136 L544 321 C544 321 644 454 429 496 C214 538 217 317 148 390 L74 589 L229 720 L425 721 C425 721 611 781 570 679 L660 500 L681 367 C681 367 697 211 598 171" ></path> -->
+
+        <path
+            (click)="selectedPathElement = $any($event.target)"
+            fill="none"
+            stroke="#fff"
+            d="M160 106 L326 180 L400 354 L231 496 C231 496 168 561 259 598 C350 635 455 628 493 553 C531 478 402 269 501 257"
+        ></path>
+
+        <path [attr.d]="connectionD" fill="none" stroke="#0000ff"></path>
+    </svg>
 
 @for (point of points; track $index) {
     <div
@@ -15,6 +42,9 @@
         [class.control]="point.type === 'control'"
         [style.transform]="'translate(' + point.x + 'px,' + point.y + 'px)'"
         class="point"
+        (click)="onPointClick($event, point)"
+        (mouseover)="overPoint($event)"
+        (mouseout)="outPoint($event)"
     >
         <div class="inner"></div>
     </div>
@@ -45,19 +75,16 @@
     }
 }
 
-
-
-
-<div style="position:absolute; right: 0; top: 0">
-
-    @for(point of points;track $index) {
+<div style="position: absolute; right: 0; top: 0">
+    @for (point of points; track $index) {
         <div>
-            {{point.x}}
-            {{point.y}}
+            {{ point.x }}
+            {{ point.y }}
         </div>
     }
 </div>
 
-
 <button (click)="setMode('pen')">Pen Mode</button>
 <button (click)="setMode('select')">Select Mode</button>
+
+is over point {{ isOverPoint }}. alt key down {{ keyAltDown }}
