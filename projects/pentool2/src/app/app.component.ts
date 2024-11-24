@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, ElementRef, HostBinding, viewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { DraggerDirective } from '@richapps/rx-drag';
 import { filter, finalize, fromEvent, NEVER, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
@@ -76,16 +76,24 @@ export class AppComponent {
     isCurveDragging = false;
     isOverPoint = false;
 
+    svgCanvas = viewChild<ElementRef>('svg_canvas');
+
     private _selectedPathElement?: SVGPathElement | undefined;
     public get selectedPathElement(): SVGPathElement | undefined {
         return this._selectedPathElement;
     }
     public set selectedPathElement(value: SVGPathElement | undefined) {
+        console.log('SET PATH ELEMENT ', value);
         if (value !== this._selectedPathElement && value) {
             this.generatePointsFromPath(value);
             this.selectedPathElement$.next(value);
+        } else if (!value) {
+            console.log('clear values');
+            this.points = [];
         }
+    
         this._selectedPathElement = value;
+        this.draw();
     }
 
     selectedPathElement$: Subject<SVGPathElement> = new Subject<SVGPathElement>();
@@ -109,9 +117,7 @@ export class AppComponent {
     keyMetaDown = false;
 
     generatePointsFromPath(path: SVGPathElement) {
-        const d = path.getAttribute('d');
         const segments = (path as any).getPathData();
-        console.log(segments);
 
         const points: Point[] = [];
 
@@ -160,8 +166,7 @@ export class AppComponent {
 
         this.points = points;
 
-        console.log(d);
-        this.draw();
+        // this.draw();
     }
 
     ngAfterViewInit() {
@@ -169,8 +174,9 @@ export class AppComponent {
             this.onPathClick($event);
         });
 
-        this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mouseover'))).subscribe(($event) => {
-            console.log('OVER PATH');
+        this.selectedPathElement$.pipe(tap((x)=>{
+            console.log('add mouse over listener!!!!', x)
+        }),switchMap((x) => fromEvent(x, 'mouseover'))).subscribe(($event) => {
             this.mouseOverPath($event);
         });
 
@@ -179,7 +185,6 @@ export class AppComponent {
         });
 
         fromEvent(window, 'keydown').subscribe((event: any) => {
-            console.log('key down', event);
             if (event.code === 'Escape') {
             }
 
@@ -192,16 +197,10 @@ export class AppComponent {
             }
 
             this.keyAltDown = event.altKey;
-            console.log('alt key down ', event.altKey);
 
             if (event.key === 'Meta') {
                 this.keyMetaDown = true;
             }
-            // if (event.key === 'p') {
-            //     this.mode = 'pen';
-            // } else if (event.key === 's') {
-            //     this.mode = 'select';
-            // }
         });
 
         fromEvent(window, 'keyup').subscribe((event: any) => {
@@ -236,7 +235,6 @@ export class AppComponent {
                         type: 'point',
                     };
                     this.draw();
-
                     this.points.push(downPoint);
                 }),
                 switchMap(() => {
@@ -308,6 +306,19 @@ export class AppComponent {
     }
 
     draw(movePoint?: Point) {
+        if (this.points.length > 0 && !this.selectedPathElement) {
+            const canvas = this.svgCanvas();
+            if (canvas) {
+                console.log('add new path! ', canvas.nativeElement);
+
+                const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                newPath.setAttribute('fill', 'none');
+                newPath.setAttribute('stroke', '#fff');
+
+                canvas.nativeElement.appendChild(newPath);
+                this.selectedPathElement = newPath;
+            }
+        }
         let d = '';
         let connectionD = '';
 
@@ -387,7 +398,6 @@ export class AppComponent {
     }
 
     onPathClick(evt: any) {
-        console.log('on path click');
         const segIndex = isInWhichSegment(evt.target, evt.clientX, evt.clientY);
         const segment = evt.target.getPathData()[segIndex];
 
@@ -406,7 +416,6 @@ export class AppComponent {
                         takeUntil(mouseUp$),
                         finalize(() => {
                             if (moveCount < 3) {
-                                console.log('add node!');
                                 this.points = insertAt(this.points, pointIndex, {
                                     x: evt.clientX,
                                     y: evt.clientY,
@@ -464,10 +473,8 @@ export class AppComponent {
 
         if (segment.type === 'C') {
             const p = this.points.find((p) => p.x === segment.values[0] && p.y === segment.values[1]);
-            console.log('p ', p);
             if (p) {
                 const pointIndex = this.points.indexOf(p as Point);
-                console.log('Point Index', pointIndex);
             }
         }
     }
@@ -486,7 +493,6 @@ export class AppComponent {
     }
 
     onPointClick(event: MouseEvent, point: Point) {
-        console.log('alt key', event.altKey);
         if (event.altKey) {
             this.points = this.points.filter((p) => p !== point);
             this.draw();
@@ -499,5 +505,13 @@ export class AppComponent {
 
     outPoint(event: MouseEvent) {
         this.isOverPoint = false;
+    }
+
+    onCanvas(evt: any) {
+        console.log('on canvas ', evt);
+        if (evt.target.getAttribute('id') === 'canvas_bg') {
+            console.log('yo!');
+            this.selectedPathElement = undefined;
+        }
     }
 }

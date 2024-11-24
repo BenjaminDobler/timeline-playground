@@ -1,5 +1,5 @@
 :host {
-    display: block;
+    display: flex;
     width: 100vw;
     height: 100vh;
 
@@ -51,7 +51,7 @@ path {
         .inner {
             transform: translate(-3px, -3px);
 
-            background: #0000ff;
+            background: #2870bd;
             width: 6px;
             height: 6px;
 
@@ -63,3 +63,7 @@ path {
         z-index: 100;
     }
 }
+
+
+
+
