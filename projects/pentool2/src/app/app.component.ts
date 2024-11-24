@@ -91,7 +91,7 @@ export class AppComponent {
             console.log('clear values');
             this.points = [];
         }
-    
+
         this._selectedPathElement = value;
         this.draw();
     }
@@ -170,19 +170,25 @@ export class AppComponent {
     }
 
     ngAfterViewInit() {
-        this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mousedown'))).subscribe(($event) => {
-            this.onPathClick($event);
-        });
+        // this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mousedown'))).subscribe(($event) => {
+        //     this.onPathClick($event);
+        // });
 
-        this.selectedPathElement$.pipe(tap((x)=>{
-            console.log('add mouse over listener!!!!', x)
-        }),switchMap((x) => fromEvent(x, 'mouseover'))).subscribe(($event) => {
-            this.mouseOverPath($event);
-        });
+        // this.selectedPathElement$
+        //     .pipe(
+        //         tap((x) => {
+        //             console.log('add mouse over listener!!!!', x);
+        //         }),
+        //         switchMap((x) => fromEvent(x, 'mouseover')),
+        //     )
+        //     .subscribe(($event) => {
+        //         console.log('mouse over');
+        //         this.mouseOverPath($event);
+        //     });
 
-        this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mouseout'))).subscribe(($event) => {
-            this.mouseOutPath($event);
-        });
+        // this.selectedPathElement$.pipe(switchMap((x) => fromEvent(x, 'mouseout'))).subscribe(($event) => {
+        //     this.mouseOutPath($event);
+        // });
 
         fromEvent(window, 'keydown').subscribe((event: any) => {
             if (event.code === 'Escape') {
@@ -234,8 +240,10 @@ export class AppComponent {
                         y: downEvent.clientY,
                         type: 'point',
                     };
-                    this.draw();
+
                     this.points.push(downPoint);
+                    console.log('ADD POINT ======');
+                    this.draw();
                 }),
                 switchMap(() => {
                     return mouseMove$.pipe(
@@ -306,6 +314,7 @@ export class AppComponent {
     }
 
     draw(movePoint?: Point) {
+        console.log('draw ', this.points);
         if (this.points.length > 0 && !this.selectedPathElement) {
             const canvas = this.svgCanvas();
             if (canvas) {
@@ -314,11 +323,31 @@ export class AppComponent {
                 const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 newPath.setAttribute('fill', 'none');
                 newPath.setAttribute('stroke', '#fff');
+                if (this.points.length > 0) {
+                    newPath.setAttribute('d', `M${this.points[0].x, this.points[0].y}`);
+                }
+
+                fromEvent(newPath, 'mousedown').subscribe(($event) => {
+                    console.log('on mousedown path!');
+                    this.onPathClick($event);
+                });
+
+                fromEvent(newPath, 'mouseover').subscribe(($event) => {
+                    console.log('mouse over');
+                    this.mouseOverPath($event);
+                });
+
+                fromEvent(newPath, 'mouseout').subscribe(($event) => {
+                    this.mouseOutPath($event);
+                });
 
                 canvas.nativeElement.appendChild(newPath);
+                const pointsBefore = [...this.points];
                 this.selectedPathElement = newPath;
+                this.points = pointsBefore;
             }
         }
+        console.log('points ', this.points);
         let d = '';
         let connectionD = '';
 
@@ -398,6 +427,11 @@ export class AppComponent {
     }
 
     onPathClick(evt: any) {
+        if (this.selectedPathElement !== evt.target) {
+            console.log('set selected path ', evt.target);
+            this.selectedPathElement = evt.target;
+            return;
+        }
         const segIndex = isInWhichSegment(evt.target, evt.clientX, evt.clientY);
         const segment = evt.target.getPathData()[segIndex];
 
@@ -509,7 +543,7 @@ export class AppComponent {
 
     onCanvas(evt: any) {
         console.log('on canvas ', evt);
-        if (evt.target.getAttribute('id') === 'canvas_bg') {
+        if (this.mode === 'select' && evt.target.getAttribute('id') === 'canvas_bg') {
             console.log('yo!');
             this.selectedPathElement = undefined;
         }

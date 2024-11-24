@@ -77,3 +77,11 @@ body {
     box-shadow: none;
     background: none;
 }
+
+
+path {
+    &:hover {
+        stroke: #0000ff;
+        stroke-width: 4;
+    }
+}
