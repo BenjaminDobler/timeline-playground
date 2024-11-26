@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { Animateable, Keyframe, PathAnimatable, Rectangle, TextDiv, Track } from '../model/timeline.model';
 import { Subject, fromEvent, map, switchMap, takeUntil, tap } from 'rxjs';
 import { TimelineCanvasComponent } from '../../timeline-canvas/timeline-canvas.component';
+import { SVGEdit } from '../../../svgedit/svgedit';
 
 function drag(target: HTMLElement, parentElement: HTMLElement) {
     const dragging = new Subject<any>();
@@ -77,7 +78,7 @@ export class CoordinationService {
         rotation: signal(9),
         background: signal('#ff0000'),
         borderRadius: signal(0),
-        d: signal('')
+        d: signal(''),
     });
 
     constructor() {
@@ -88,11 +89,25 @@ export class CoordinationService {
 
     htmlCanvas?: HTMLDivElement;
     svgCanvas?: SVGElement;
+    svgEdit?: SVGEdit;
 
     setCanvas(canvas: TimelineCanvasComponent) {
         this.highlight = canvas.highlight()?.nativeElement;
         this.htmlCanvas = canvas.htmlElements()?.nativeElement;
         this.svgCanvas = canvas.svgElements()?.nativeElement;
+
+        this.svgEdit = new SVGEdit();
+        this.svgEdit.svg = this.svgCanvas;
+        this.svgEdit.init();
+
+        this.svgEdit.onNewPathAdded = (p) => {
+            const animatable = new PathAnimatable(p, p as any);
+            this.addElement(animatable, false);
+        };
+
+        this.svgEdit.onPathChanged = (d) => {
+            this.propertyChanged('d', `path("${d}")`);
+        };
     }
 
     addText() {
@@ -109,18 +124,11 @@ export class CoordinationService {
     }
 
     addPath() {
-        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-
-        iconSvg.setAttribute('width', '800');
-        iconSvg.setAttribute('height', '800');
-
-        // iconSvg.setAttribute('viewBox', '0 0 24 24');
-        iconSvg.setAttribute('stroke', 'black');
 
         iconPath.setAttribute('d', 'M 310 125 C 310 125 484 202 484 202 L 410 390 L 124 399 C 124 399 13 246 95 186 Z');
 
-        iconSvg.appendChild(iconPath);
+        //iconSvg.appendChild(iconPath);
         const animatable = new PathAnimatable(iconPath, iconPath as any);
         this.addElement(animatable);
     }
@@ -139,12 +147,14 @@ export class CoordinationService {
         this.addElement(animateable);
     }
 
-    addElement(animateable: Animateable) {
-        if (this.htmlCanvas && !animateable.isSvg) {
-            this.htmlCanvas.appendChild(animateable.domRef);
-            //document.body.insertBefore(this.canvas, newDiv);
-        } else if (this.svgCanvas && animateable.isSvg) {
-            this.svgCanvas.appendChild(animateable.domRef);
+    addElement(animateable: Animateable, append = true) {
+        if (append) {
+            if (this.htmlCanvas && !animateable.isSvg) {
+                this.htmlCanvas.appendChild(animateable.domRef);
+                //document.body.insertBefore(this.canvas, newDiv);
+            } else if (this.svgCanvas && animateable.isSvg) {
+                this.svgCanvas.appendChild(animateable.domRef);
+            }
         }
 
         const { dragging, dragend } = drag(animateable.domRef, this.htmlCanvas as HTMLElement);
@@ -248,10 +258,15 @@ export class CoordinationService {
 
             selectedProperties.width.set(gsap.getProperty(this.selectedGroup.animationTarget, 'width'));
             selectedProperties.height.set(gsap.getProperty(this.selectedGroup.animationTarget, 'height'));
+
             selectedProperties.rotation.set(gsap.getProperty(this.selectedGroup.animationTarget, 'rotation'));
 
             this.selectedGroup.properties.forEach((p) => {
-                if (this.selectedGroup) {                    
+                if (this.selectedGroup) {
+                    console.log('p name ', p.name);
+                    if (!selectedProperties[p.name]) {
+                        selectedProperties[p.name] = signal('');
+                    }
                     selectedProperties[p.name].set(gsap.getProperty(this.selectedGroup.animationTarget, p.name));
                 }
             });

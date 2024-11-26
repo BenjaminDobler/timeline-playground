@@ -1,24 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "primeng/resources/themes/aura-dark-blue/theme.css";
-@import "primeng/resources/primeng.css";
-@import "primeicons/primeicons.css";
 
-html {
-    font-size: 14px;
-}
 body {
-    margin: 0;
+    background: #000;
 }
-
-*,
-::after,
-::before {
-    box-sizing: border-box;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
 .control_lines {
     stroke: #2870bd;
 }

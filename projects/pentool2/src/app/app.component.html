@@ -34,7 +34,20 @@
             d="M160 106 L326 180 L400 354 L231 496 C231 496 168 561 259 598 C350 635 455 628 493 553 C531 478 402 269 501 257"
         ></path>
 
-        <path class="connection-path" [attr.d]="connectionD" fill="none" stroke="#2870bd"></path>
+        <g>
+            <path class="connection-path" [attr.d]="connectionD" fill="none" stroke="#2870bd"></path>
+
+            <!-- @for (point of points; track $index) {
+                <circle [attr.cx]="point.x" [attr.cy]="point.y" r="6" fill="#fff"></circle>
+
+                @if (point.controlPoint1) {
+                    <circle [attr.cx]="point.controlPoint1.x" [attr.cy]="point.controlPoint1.y" r="6" fill="#00ff00"></circle>
+                }
+                @if (point.controlPoint2) {
+                    <circle [attr.cx]="point.controlPoint2.x" [attr.cy]="point.controlPoint2.y" r="3" fill="#00ff00"></circle>
+                }
+            } -->
+        </g>
     </svg>
 
     @for (point of points; track $index) {
@@ -80,10 +93,10 @@
     }
 </div>
 
-<div style="padding: 20px;">
+<div style="padding: 20px">
     <div (click)="setMode('pen')" class="btn">Pen</div>
     <div (click)="setMode('select')" class="btn">Select</div>
-    <br>
+    <br />
     is over point {{ isOverPoint }}. alt key down {{ keyAltDown }}
     @for (point of points; track $index) {
         <div>

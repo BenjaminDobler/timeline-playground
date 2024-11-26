@@ -19,6 +19,9 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "paths": {
+      "ng-pen": [
+        "./dist/ng-pen"
+      ],
       "timeline-components": [
         "./dist/timeline-components"
       ]

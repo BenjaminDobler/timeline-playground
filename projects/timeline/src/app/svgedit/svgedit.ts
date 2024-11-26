@@ -1,95 +1,85 @@
-import { Component, ElementRef, HostBinding, viewChild } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { DraggerDirective } from '@richapps/rx-drag';
-import { filter, finalize, fromEvent, NEVER, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
-import { SvgEditComponent } from './components/svg-edit/svg-edit.component';
+import { filter, finalize, fromEvent, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import { Point } from './point';
+import { bringToTopofSVG, distance, getAngle, insertAt, isInWhichSegment } from './util';
 
-interface Point {
-    x: number;
-    y: number;
-    controlPoint1?: Point;
-    controlPoint2?: Point;
-    centerPoint?: Point;
-    type?: string;
-    opposite?: Point;
-}
+export class SVGEdit {
+    points: Point[] = [];
+    private _svg?: SVGElement | undefined;
 
-interface Curve {
-    controlPoint1: Point;
-    controlPoint2: Point;
-    endPoint: Point;
-}
+    onNewPathAdded?: (path: SVGPathElement)=>void;
 
-function distance(p1: Point, p2: Point) {
-    const a = p1.x - p2.x;
-    const b = p1.y - p2.y;
+    private _d: string = '';
+    public get d(): string {
+        return this._d;
+    }
+    public set d(value: string) {
+        if(value !== this._d && this.onPathChanged && this.selectedPathElement) {
+            this.onPathChanged(value, this.selectedPathElement);
+        }
+        this._d = value;
+    }
 
-    const c = Math.sqrt(a * a + b * b);
-    return c;
-}
+    onPathChanged?: (d: string, path: SVGPathElement)=>void;
 
-function getAngle(p1: Point, p2: Point) {
-    let angle = Math.atan2(p1.y - p2.y, p1.x - p2.x);
-    return angle;
-}
+    private controlLinesPath?: SVGPathElement;
 
-function isInWhichSegment(pathElement: any, x: number, y: number) {
-    var seg;
-    // You get get the coordinates at the length of the path, so you
-    // check at all length point to see if it matches
-    // the coordinates of the click
-    const len = pathElement.getTotalLength();
-    for (var i = 0; i < len; i++) {
-        var pt = pathElement.getPointAtLength(i);
-        // you need to take into account the stroke width, hence the +- 2
-        if (pt.x < x + 2 && pt.x > x - 2 && pt.y > y - 2 && pt.y < y + 2) {
-            seg = pathElement.getPathSegAtLength(i);
-            break;
+    public get svg(): SVGElement | undefined {
+        return this._svg;
+    }
+    public set svg(value: SVGElement | undefined) {
+        this._svg = value;
+
+        if (this._svg) {
+            const controlLines = this.svg?.querySelector('.control_lines');
+            if (!this.svg?.querySelector('.editorControls')) {
+                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                group.classList.add('editorControls');
+
+                const controlLines = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                this.controlLinesPath = controlLines;
+                controlLines.classList.add('control_lines');
+                group.appendChild(controlLines);
+
+                this.svg?.appendChild(group);
+            } else {
+                if (controlLines) {
+                    this.controlLinesPath = controlLines as SVGPathElement;
+                }
+            }
+            fromEvent(this.svg as any, 'mousedown').subscribe((evt) => {
+                this.onCanvas(evt);
+            });
         }
     }
-    return seg;
-}
-
-function insertAt(arr: any[], position: number, item: any) {
-    const newArray = [...arr.slice(0, position), item, ...arr.slice(position)];
-    return newArray;
-}
-
-@Component({
-    selector: 'app-root',
-    imports: [DraggerDirective, SvgEditComponent],
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.scss',
-})
-export class AppComponent {
-    title = 'pentool2';
-
-    points: Point[] = [];
-
-    d = '';
-    connectionD = '';
     dragging = false;
-
     mode$ = new Subject<string>();
     mode = 'select';
+    connectionD = '';
 
     isOverLine = false;
-    isCurveDragging = false;
     isOverPoint = false;
 
-    svgCanvas = viewChild<ElementRef>('svg_canvas');
+    isCurveDragging = false;
+
+    keyAltDown = false;
+    keyMetaDown = false;
 
     private _selectedPathElement?: SVGPathElement | undefined;
     public get selectedPathElement(): SVGPathElement | undefined {
         return this._selectedPathElement;
     }
     public set selectedPathElement(value: SVGPathElement | undefined) {
-        console.log('SET PATH ELEMENT ', value);
         if (value !== this._selectedPathElement && value) {
             this.generatePointsFromPath(value);
             this.selectedPathElement$.next(value);
+            const editorGroup = this.svg?.querySelector('.editorControls') as SVGElement;
+            if (editorGroup) {
+                bringToTopofSVG(editorGroup);
+            }
         } else if (!value) {
-            console.log('clear values');
+            this.points.forEach((p) => {
+                p.destroy();
+            });
             this.points = [];
         }
 
@@ -99,78 +89,14 @@ export class AppComponent {
 
     selectedPathElement$: Subject<SVGPathElement> = new Subject<SVGPathElement>();
 
-    @HostBinding('class.pen-cursor')
-    get penCursor() {
-        return this.mode === 'pen' && !(this.keyAltDown && this.overPoint);
+    constructor() {}
+
+    init() {
+        this.initKeyboard();
+        this.initMouseGuestures();
     }
 
-    @HostBinding('class.pen-minus')
-    get penMinusCursor() {
-        return this.mode === 'pen' && this.keyAltDown && this.overPoint;
-    }
-
-    @HostBinding('class.curve-cursor')
-    get curveCursor() {
-        return this.mode === 'select' && (this.isOverLine || this.isCurveDragging);
-    }
-
-    keyAltDown = false;
-    keyMetaDown = false;
-
-    generatePointsFromPath(path: SVGPathElement) {
-        const segments = (path as any).getPathData();
-
-        const points: Point[] = [];
-
-        segments.forEach((seg: any, index: number) => {
-            const previousPoint = points[points.length - 1];
-            if (seg.type === 'M') {
-                points.push({
-                    x: seg.values[0],
-                    y: seg.values[1],
-                });
-            }
-            if (seg.type === 'L') {
-                points.push({
-                    x: seg.values[0],
-                    y: seg.values[1],
-                });
-            }
-            if (seg.type === 'C') {
-                const point: Point = {
-                    x: seg.values[4],
-                    y: seg.values[5],
-                };
-
-                const controlPoint1: Point = {
-                    x: seg.values[0],
-                    y: seg.values[1],
-                    centerPoint: previousPoint,
-                };
-                const controlPoint2: Point = {
-                    x: seg.values[2],
-                    y: seg.values[3],
-                    centerPoint: point,
-                };
-
-                point.controlPoint1 = controlPoint2;
-                previousPoint.controlPoint2 = controlPoint1;
-
-                if (previousPoint.controlPoint1 && previousPoint.controlPoint2) {
-                    previousPoint.controlPoint1.opposite = previousPoint.controlPoint2;
-                    previousPoint.controlPoint2.opposite = previousPoint.controlPoint1;
-                }
-
-                points.push(point);
-            }
-        });
-
-        this.points = points;
-
-        // this.draw();
-    }
-
-    ngAfterViewInit() {
+    initKeyboard() {
         fromEvent(window, 'keydown').subscribe((event: any) => {
             if (event.code === 'Escape') {
             }
@@ -194,36 +120,38 @@ export class AppComponent {
             this.keyAltDown = false;
             this.keyMetaDown = false;
         });
+    }
 
+    initMouseGuestures() {
         const mouseDown$ = fromEvent<MouseEvent>(window, 'mousedown');
         const mouseUp$ = fromEvent<MouseEvent>(window, 'mouseup');
         const mouseMove$ = fromEvent<MouseEvent>(window, 'mousemove');
 
         let moves = 0;
         let downPoint: Point;
+        let parentRect = { left: 0, top: 0 };
+        if (this.svg) {
+            parentRect = this.svg.getBoundingClientRect();
+        }
 
         mouseMove$.pipe(filter((x) => !this.dragging)).subscribe((evt: MouseEvent) => {
             if (this.mode === 'pen') {
-                this.draw({ x: evt.clientX, y: evt.clientY, type: 'move' });
+                this.draw({ x: evt.clientX - parentRect.left, y: evt.clientY - parentRect.top });
             }
         });
 
         mouseDown$
             .pipe(
                 filter((x: any) => {
-                    return this.mode === 'pen' && !x.target.classList.contains('point') && !x.target.classList.contains('inner');
+                    return this.mode === 'pen' && !x.target.classList.contains('point');
                 }),
                 tap((downEvent: MouseEvent) => {
                     moves = 0;
-
-                    downPoint = {
-                        x: downEvent.clientX,
-                        y: downEvent.clientY,
-                        type: 'point',
-                    };
+                    downPoint = new Point(this.svg, 'point', () => this.draw(), this.positionUpdated.bind(this));
+                    downPoint.x = downEvent.clientX - parentRect.left;
+                    downPoint.y = downEvent.clientY - parentRect.top;
 
                     this.points.push(downPoint);
-                    console.log('ADD POINT ======');
                     this.draw();
                 }),
                 switchMap(() => {
@@ -232,46 +160,43 @@ export class AppComponent {
                             if (moves === 3) {
                                 const previousPoint = this.points[this.points.length - 2];
                                 if (!previousPoint.controlPoint1) {
-                                    previousPoint.controlPoint2 = {
-                                        x: previousPoint.x,
-                                        y: previousPoint.y,
-                                        type: 'control',
-                                    };
+                                    previousPoint.controlPoint2 = new Point(
+                                        this.svg,
+                                        'control',
+                                        () => this.draw(),
+                                        this.positionUpdated.bind(this),
+                                    );
+                                    previousPoint.controlPoint2.x = previousPoint.x;
+                                    previousPoint.controlPoint2.y = previousPoint.y;
                                 }
 
-                                const controlPoint1: Point = {
-                                    x: downPoint.x,
-                                    y: downPoint.y,
-                                    centerPoint: downPoint,
-                                    type: 'control',
-                                };
+                                const controlPoint1 = new Point(this.svg, 'control', () => this.draw(), this.positionUpdated.bind(this));
+                                controlPoint1.x = downPoint.x;
+                                controlPoint1.y = downPoint.y;
+                                controlPoint1.centerPoint = downPoint;
 
-                                const controlPoint2: Point = {
-                                    x: downPoint.x,
-                                    y: downPoint.y,
-                                    centerPoint: downPoint,
-                                    opposite: controlPoint1,
-                                    type: 'control',
-                                };
+                                const controlPoint2 = new Point(this.svg, 'control', () => this.draw(), this.positionUpdated.bind(this));
+                                controlPoint2.x = downPoint.x;
+                                controlPoint2.y = downPoint.y;
+                                controlPoint2.centerPoint = downPoint;
+                                controlPoint2.opposite = controlPoint1;
+
                                 controlPoint1.opposite = controlPoint2;
                                 downPoint.controlPoint1 = controlPoint1;
                                 downPoint.controlPoint2 = controlPoint2;
-                                //this.points.push(downPoint);
-
-                                // this.draw();
                             } else if (moves > 3) {
                                 this.dragging = true;
                                 if (downPoint.controlPoint1) {
-                                    const diffX = dragMoveEvent.clientX - downPoint.x;
-                                    const diffY = dragMoveEvent.clientY - downPoint.y;
+                                    const diffX = dragMoveEvent.clientX - parentRect.left - downPoint.x;
+                                    const diffY = dragMoveEvent.clientY - parentRect.top - downPoint.y;
 
                                     downPoint.controlPoint1.x = downPoint.x + -1 * diffX;
                                     downPoint.controlPoint1.y = downPoint.y + -1 * diffY;
                                 }
 
                                 if (downPoint.controlPoint2) {
-                                    downPoint.controlPoint2.x = dragMoveEvent.clientX;
-                                    downPoint.controlPoint2.y = dragMoveEvent.clientY;
+                                    downPoint.controlPoint2.x = dragMoveEvent.clientX - parentRect.left;
+                                    downPoint.controlPoint2.y = dragMoveEvent.clientY - parentRect.top;
                                 }
                             }
 
@@ -290,17 +215,9 @@ export class AppComponent {
             .subscribe();
     }
 
-    setMode(mode: string) {
-        this.mode = mode;
-    }
-
-    draw(movePoint?: Point) {
-        console.log('draw ', this.points);
+    draw(movePoint?: { x: number; y: number }) {
         if (this.points.length > 0 && !this.selectedPathElement) {
-            const canvas = this.svgCanvas();
-            if (canvas) {
-                console.log('add new path! ', canvas.nativeElement);
-
+            if (this.svg) {
                 const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 newPath.setAttribute('fill', 'none');
                 newPath.setAttribute('stroke', '#fff');
@@ -309,12 +226,10 @@ export class AppComponent {
                 }
 
                 fromEvent(newPath, 'mousedown').subscribe(($event) => {
-                    console.log('on mousedown path!');
                     this.onPathClick($event);
                 });
 
                 fromEvent(newPath, 'mouseover').subscribe(($event) => {
-                    console.log('mouse over');
                     this.mouseOverPath($event);
                 });
 
@@ -322,13 +237,16 @@ export class AppComponent {
                     this.mouseOutPath($event);
                 });
 
-                canvas.nativeElement.appendChild(newPath);
+                this.svg.appendChild(newPath);
+                if (this.onNewPathAdded) {
+                    this.onNewPathAdded(newPath);
+                }
+
                 const pointsBefore = [...this.points];
                 this.selectedPathElement = newPath;
                 this.points = pointsBefore;
             }
         }
-        console.log('points ', this.points);
         let d = '';
         let connectionD = '';
 
@@ -376,44 +294,79 @@ export class AppComponent {
         // this.d = d;
         this.connectionD = connectionD;
 
+        if (this.controlLinesPath) {
+            this.controlLinesPath.setAttribute('d', connectionD);
+        }
         if (this.selectedPathElement) {
             this.selectedPathElement.setAttribute('d', d);
         }
+
+        this.d = d;
     }
 
-    positionUpdated(point: Point, event: any) {
-        const diffX = event.x - point.x;
-        const diffY = event.y - point.y;
-        point.x = event.x;
-        point.y = event.y;
+    generatePointsFromPath(path: SVGPathElement) {
+        const segments = (path as any).getPathData();
 
-        if (point.controlPoint1) {
-            point.controlPoint1.x += diffX;
-            point.controlPoint1.y += diffY;
-        }
+        const points: Point[] = [];
 
-        if (point.controlPoint2) {
-            point.controlPoint2.x += diffX;
-            point.controlPoint2.y += diffY;
-        }
+        segments.forEach((seg: any, index: number) => {
+            const previousPoint = points[points.length - 1];
+            if (seg.type === 'M') {
+                const p = new Point(this.svg, 'point', () => this.draw(), this.positionUpdated.bind(this));
+                p.x = seg.values[0];
+                p.y = seg.values[1];
+                points.push(p);
+            }
+            if (seg.type === 'L') {
+                const p = new Point(this.svg, 'point', () => this.draw(), this.positionUpdated.bind(this));
+                p.x = seg.values[0];
+                p.y = seg.values[1];
+                points.push(p);
+            }
+            if (seg.type === 'C') {
+                const p = new Point(this.svg, 'point', () => this.draw(), this.positionUpdated.bind(this));
+                p.x = seg.values[4];
+                p.y = seg.values[5];
 
-        if (point.opposite && point.centerPoint) {
-            const diffX = point.x - point.centerPoint.x;
-            const diffY = point.y - point.centerPoint.y;
+                const controlPoint1 = new Point(this.svg, 'control', () => this.draw(), this.positionUpdated.bind(this));
 
-            point.opposite.x = point.centerPoint.x + -1 * diffX;
-            point.opposite.y = point.centerPoint.y + -1 * diffY;
-        }
-        this.draw();
+                controlPoint1.x = seg.values[0];
+                controlPoint1.y = seg.values[1];
+                controlPoint1.centerPoint = previousPoint;
+
+                const controlPoint2 = new Point(this.svg, 'control', () => this.draw(), this.positionUpdated.bind(this));
+                controlPoint2.x = seg.values[2];
+                controlPoint2.y = seg.values[3];
+                controlPoint2.centerPoint = p;
+
+                p.controlPoint1 = controlPoint2;
+                previousPoint.controlPoint2 = controlPoint1;
+
+                if (previousPoint.controlPoint1 && previousPoint.controlPoint2) {
+                    previousPoint.controlPoint1.opposite = previousPoint.controlPoint2;
+                    previousPoint.controlPoint2.opposite = previousPoint.controlPoint1;
+                }
+
+                points.push(p);
+            }
+        });
+
+        this.points = points;
+
+        // this.draw();
     }
 
     onPathClick(evt: any) {
         if (this.selectedPathElement !== evt.target) {
-            console.log('set selected path ', evt.target);
             this.selectedPathElement = evt.target;
             return;
         }
-        const segIndex = isInWhichSegment(evt.target, evt.clientX, evt.clientY);
+
+        let parentRect = { left: 0, top: 0 };
+        if (this.svg) {
+            parentRect = this.svg.getBoundingClientRect();
+        }
+        const segIndex = isInWhichSegment(evt.target, evt.clientX - parentRect.left, evt.clientY - parentRect.top);
         const segment = evt.target.getPathData()[segIndex];
 
         if (segment.type === 'L') {
@@ -431,10 +384,10 @@ export class AppComponent {
                         takeUntil(mouseUp$),
                         finalize(() => {
                             if (moveCount < 3) {
-                                this.points = insertAt(this.points, pointIndex, {
-                                    x: evt.clientX,
-                                    y: evt.clientY,
-                                });
+                                const p = new Point(this.svg, 'point', () => this.draw(), this.positionUpdated.bind(this));
+                                p.x = evt.clientX - parentRect.left;
+                                p.y = evt.clientY - parentRect.top;
+                                this.points = insertAt(this.points, pointIndex, p);
                             }
                             this.isCurveDragging = false;
                         }),
@@ -443,15 +396,22 @@ export class AppComponent {
                         moveCount++;
 
                         const mousePoint = {
-                            x: evt.clientX,
-                            y: evt.clientY,
+                            x: evt.clientX - parentRect.left,
+                            y: evt.clientY - parentRect.top,
                         };
 
                         if (moveCount > 3) {
                             // Convert line to curve
 
                             if (!previousPoint.controlPoint2) {
-                                previousPoint.controlPoint2 = { x: 0, y: 0, type: 'curve', centerPoint: previousPoint };
+                                previousPoint.controlPoint2 = new Point(
+                                    this.svg,
+                                    'curve',
+                                    () => this.draw(),
+                                    this.positionUpdated.bind(this),
+                                );
+                                previousPoint.centerPoint = previousPoint;
+
                                 if (previousPoint.controlPoint1) {
                                     previousPoint.controlPoint2.opposite = previousPoint.controlPoint1;
                                     previousPoint.controlPoint1.opposite = previousPoint.controlPoint2;
@@ -459,7 +419,8 @@ export class AppComponent {
                             }
 
                             if (!p.controlPoint1) {
-                                p.controlPoint1 = { x: 0, y: 0, type: 'curve', centerPoint: p };
+                                p.controlPoint1 = new Point(this.svg, 'curve', () => this.draw(), this.positionUpdated.bind(this));
+                                p.controlPoint1.centerPoint = p;
                                 if (p.controlPoint2) {
                                     p.controlPoint2.opposite = p.controlPoint1;
                                     p.controlPoint1.opposite = p.controlPoint2;
@@ -495,7 +456,11 @@ export class AppComponent {
     }
 
     mouseOverPath(evt: any) {
-        const segIndex = isInWhichSegment(evt.target, evt.clientX, evt.clientY);
+        let parentRect = { left: 0, top: 0 };
+        if (this.svg) {
+            parentRect = this.svg.getBoundingClientRect();
+        }
+        const segIndex = isInWhichSegment(evt.target, evt.clientX - parentRect.left, evt.clientY - parentRect.top);
         const segment = evt.target.getPathData()[segIndex];
 
         if (segment.type === 'L') {
@@ -523,10 +488,29 @@ export class AppComponent {
     }
 
     onCanvas(evt: any) {
-        console.log('on canvas ', evt);
-        if (this.mode === 'select' && evt.target.getAttribute('id') === 'canvas_bg') {
-            console.log('yo!');
+        if (this.mode === 'select' && (evt.target === this.svg || evt.target.getAttribute('id') === 'canvas_bg')) {
             this.selectedPathElement = undefined;
         }
+    }
+
+    positionUpdated(point: Point, diffX: number, diffY: number) {
+        if (point.controlPoint1) {
+            point.controlPoint1.x += diffX;
+            point.controlPoint1.y += diffY;
+        }
+
+        if (point.controlPoint2) {
+            point.controlPoint2.x += diffX;
+            point.controlPoint2.y += diffY;
+        }
+
+        if (point.opposite && point.centerPoint) {
+            const diffX = point.x - point.centerPoint.x;
+            const diffY = point.y - point.centerPoint.y;
+
+            point.opposite.x = point.centerPoint.x + -1 * diffX;
+            point.opposite.y = point.centerPoint.y + -1 * diffY;
+        }
+        this.draw();
     }
 }
